@@ -1,6 +1,7 @@
 # Ставим всё и настраиваем вебсервер
 # Работаем в предположении, что nginx уже установлен
 # https://tutorials.technology/tutorials/71-How-to-setup-Flask-with-gunicorn-and-nginx-with-examples.html
+# https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-14-04
 
 
 # Создаём папку проектов (если ещё не) 
@@ -129,8 +130,8 @@ chown -R findmespot:findmespot /website/findmespot/
 
 
 # Настраиваем автозапуск
-rm -f /etc/systemd/system/findmespot.service
-touch /etc/systemd/system/findmespot.service
+rm -f /etc/systemd/system/gunicorn.service
+touch /etc/systemd/system/gunicorn.service
 echo '[Unit]
 Description=Gunicorn instance to serve findmespot
 Requires=gunicorn.socket
@@ -151,7 +152,7 @@ PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
-' >> /etc/systemd/system/findmespot.service
+' >> /etc/systemd/system/gunicorn.service
 
 
 # Создаём socket-файл
@@ -161,7 +162,7 @@ echo '[Unit]
 Description=gunicorn socket
 
 [Socket]
-ListenStream=/run/gunicorn/socket
+ListenStream=/website/findmespot/app.socket
 
 [Install]
 WantedBy=sockets.target
@@ -169,16 +170,20 @@ WantedBy=sockets.target
 
 rm -f /etc/tmpfiles.d/gunicorn.conf 
 touch /etc/tmpfiles.d/gunicorn.conf 
-echo 'd /run/gunicorn 0755 findmespot findmespot -
+echo 'd /run/gunicorn 0755 findmespot nginx -
 ' >> /etc/tmpfiles.d/gunicorn.conf 
 
 
 # Теперь можно включить сервис Gunicorn
 systemctl enable gunicorn.socket
 systemctl start gunicorn.socket
+systemctl reload gunicorn.socket
 
 # Если не запускается, то для отладки используем
-# journalctl -u findmespot.service
+# journalctl -u gunicorn.service
+
+# Проверяем (Должен вернуться ответ)
+curl --unix-socket /website/findmespot/app.socket http
 
 
 
@@ -188,8 +193,14 @@ rm -f /etc/nginx/conf.d/findmespot.conf
 touch /etc/nginx/conf.d/findmespot.conf
 echo 'server {
  listen  80;
+ listen [::]:443 ssl ipv6only=on; # managed by Certbot
+ listen 443 ssl; # managed by Certbot
+ ssl_certificate /etc/letsencrypt/live/v.shashkovs.ru/fullchain.pem; # managed by Certbot
+ ssl_certificate_key /etc/letsencrypt/live/v.shashkovs.ru/privkey.pem; # managed by Certbot
+ include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+ ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
- server_name v.shashkovs.ru www.v.shashkovs.ru;
+ server_name v.shashkovs.ru;
  access_log /website/findmespot/logs/nginx_access.log;
  error_log /website/findmespot/logs/nginx_error.log;
 
@@ -203,7 +214,12 @@ echo 'server {
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   proxy_buffering off;
  }
- 
+
+ location ~* \.(css|js|png|gif|jpg|jpeg|ico)$ {
+  root /website/findmespot/py_findmespot;
+  expires 1d;
+ } 
+
  error_page 500 502 503 504 /50x.html;
  location = /50x.html {
   root /usr/share/nginx/html;
@@ -215,8 +231,6 @@ echo 'server {
 nginx -t
 
 # Перезапускаем nginx
-service nginx reload
-
-
+nginx -s reload
 
 
