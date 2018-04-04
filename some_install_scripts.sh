@@ -2,7 +2,7 @@
 # Ставим вебсервер на flask
 adduser findmespot_user
 passwd findmespot_user
-  AMBYKRm5j7wesZ
+  Здесь-был-пароль
 gpasswd -a findmespot_user anaconda
 echo 'export PATH="/opt/miniconda3/bin:$PATH"' >> /home/findmespot_user/.bashrc
 # создаём ключ
@@ -18,6 +18,7 @@ echo 'export PATH="/opt/miniconda3/bin:$PATH"' >> /home/findmespot_user/.bashrc
 
 
 chown -R findmespot_user /home/findmespot_user/
+
 
 
 
@@ -105,12 +106,6 @@ curl https://bootstrap.pypa.io/get-pip.py | python
 deactivate
 source findmespot_env/bin/activate
 pip install -r ~/find_web_server/requirements.txt
-
-
-https://github.com/ShashkovS/py_findmespot.git
-
-
-/home/findmespot_user/find_web_server/py_findmespot/main.py
 
 
 nohup /home/findmespot_user/find_web_server/findmespot_env/bin/python /home/findmespot_user/find_web_server/py_findmespot/main.py > find_web_server.log &
