@@ -93,13 +93,13 @@ echo 'Host github.com
   IdentityFile /home/findmespot_user/.ssh/findmespot_user_rsa_key_for_github' > /home/findmespot_user/.ssh/config
 
 # Клонируем репу
-cd ~
+cd /home/findmespot_user/find_web_server
 ssh-agent bash -c 'ssh-add /home/findmespot_user/.ssh/findmespot_user_rsa_key_for_github; git clone https://github.com/ShashkovS/py_findmespot.git'
 cd /home/findmespot_user/find_web_server
 git pull origin master
 
 # Создаём виртуальное окружение и ставим туда пакеты
-cd ~
+cd /home/findmespot_user/find_web_server
 python -m venv --without-pip findmespot_env
 source findmespot_env/bin/activate
 curl https://bootstrap.pypa.io/get-pip.py | python
