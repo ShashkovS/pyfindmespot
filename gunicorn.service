@@ -1,0 +1,21 @@
+[Unit]
+Description=Gunicorn instance to serve findmespot
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+PIDFile=/website/findmespot/app.pid
+Restart=on-failure
+User=findmespot
+Group=nginx
+RuntimeDirectory=gunicorn
+WorkingDirectory=/website/findmespot/py_findmespot
+Environment="PATH=/website/findmespot/findmespot_env/bin"
+ExecStart=/website/findmespot/findmespot_env/bin/gunicorn  --pid /website/findmespot/app.pid  --workers 1  --bind unix:/website/findmespot/app.socket  -m 007  findmespot_app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+

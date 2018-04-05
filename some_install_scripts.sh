@@ -86,23 +86,30 @@ git pull origin master
 
 
 
-# Создаём тестовое dummy-приложение
+# Создаём тестовое findmespot_app-приложение
 # /website/findmespot/py_findmespot
-rm /website/findmespot/py_findmespot/dummy.py
-touch /website/findmespot/py_findmespot/dummy.py
+rm /website/findmespot/py_findmespot/findmespot_app.py
+touch /website/findmespot/py_findmespot/findmespot_app.py
 echo 'from flask import Flask
 from werkzeug.contrib.fixers import ProxyFix  # For Gunicorn
+
 application = Flask(__name__)
-@application.route("/")
-def hello():
-    return """<h1>Hello world!</h1>"""
+application.config["APPLICATION_ROOT"] = "/findmespot"
+# @application.route("/")
+
+@application.route('/', defaults={'path': ''})
+@application.route('/<path:path>')
+def hello(path):
+    return """<h1>Hello world!</h1><p>Path is: """ + path
+
+
 application.wsgi_app = ProxyFix(application.wsgi_app)  # For Gunicorn
 if __name__ == "__main__":
     application.run(host="0.0.0.0")
-' >> /website/findmespot/py_findmespot/dummy.py
+' >> /website/findmespot/py_findmespot/findmespot_app.py
 
 # Тестово запускаем из командной строки
-gunicorn dummy:application
+gunicorn findmespot_app:application
 
 
 
@@ -145,7 +152,7 @@ Group=nginx
 RuntimeDirectory=gunicorn
 WorkingDirectory=/website/findmespot/py_findmespot
 Environment="PATH=/website/findmespot/findmespot_env/bin"
-ExecStart=/website/findmespot/findmespot_env/bin/gunicorn  --pid /website/findmespot/app.pid  --workers 1  --bind unix:/website/findmespot/app.socket  -m 007  dummy:application
+ExecStart=/website/findmespot/findmespot_env/bin/gunicorn  --pid /website/findmespot/app.pid  --workers 1  --bind unix:/website/findmespot/app.socket  -m 007  findmespot_app:app
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
 PrivateTmp=true
@@ -176,15 +183,14 @@ echo 'd /run/gunicorn 0755 findmespot nginx -
 
 # Теперь можно включить сервис Gunicorn
 systemctl enable gunicorn.socket
+systemctl stop gunicorn.socket
 systemctl start gunicorn.socket
-systemctl reload gunicorn.socket
 
 # Если не запускается, то для отладки используем
 # journalctl -u gunicorn.service
 
 # Проверяем (Должен вернуться ответ)
 curl --unix-socket /website/findmespot/app.socket http
-
 
 
 # создаём виртуальный хост Nginx
@@ -233,4 +239,9 @@ nginx -t
 # Перезапускаем nginx
 nginx -s reload
 
+
+# Перезапускаем всё
+systemctl stop gunicorn.socket
+systemctl start gunicorn.socket
+systemctl reload nginx.service
 
