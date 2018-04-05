@@ -3,7 +3,8 @@ repo_path=/website/findmespot/py_findmespot
 
 echo 'Обновляем код с githubа'
 cd $repo_path
-git pull origin master
+git fetch origin master
+git reset --hard origin/master
 
 echo 'Обновляем конфиги'
 cp -u config/gunicorn.service /etc/systemd/system/gunicorn.service

@@ -1,9 +1,0 @@
-[Unit]
-Description=gunicorn socket
-
-[Socket]
-ListenStream=/website/findmespot/app.socket
-
-[Install]
-WantedBy=sockets.target
-
