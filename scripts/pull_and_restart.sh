@@ -5,13 +5,21 @@ echo 'Обновляем код с githubа'
 cd $repo_path
 git pull origin master
 
+echo 'Стопим gunicorn'
+systemctl stop gunicorn.socket
+
 echo 'Обновляем конфиги'
-cp -u config/gunicorn.service /etc/systemd/system/gunicorn.service
-cp -u config/gunicorn.socket /etc/systemd/system/gunicorn.socket
-cp -u config/gunicorn.conf  /etc/tmpfiles.d/gunicorn.conf 
-cp -u config/findmespot.conf /etc/nginx/conf.d/findmespot.conf
+yes | cp -u -f /website/findmespot/py_findmespot/config/gunicorn.service /etc/systemd/system/gunicorn.service
+yes | cp -u -f /website/findmespot/py_findmespot/config/gunicorn.socket /etc/systemd/system/gunicorn.socket
+yes | cp -u -f /website/findmespot/py_findmespot/config/gunicorn.conf  /etc/tmpfiles.d/gunicorn.conf 
+yes | cp -u -f /website/findmespot/py_findmespot/config/findmespot.conf /etc/nginx/conf.d/findmespot.conf
 
 echo 'Перезапускаем всё'
-systemctl stop gunicorn.socket
 systemctl start gunicorn.socket
 systemctl reload nginx.service
+
+echo 'Тестируем: дёргаем сокет локально'
+curl --unix-socket /website/findmespot/app.socket http | head -n 3
+
+echo 'Тестируем: дёргаем приложение через вебсервис'
+curl http://v.shashkovs.ru/findmespot/test | head -n 3
