@@ -8,7 +8,7 @@ app.config["APPLICATION_ROOT"] = "/findmespot"
 @app.route('/', defaults={'path': ''})  # Это — хук для того, чтобы обрабатывать пустой адрес и передавать в параметр пустой путь
 @app.route('/<path:path>')  # Это — хук для того, чтобы обрабатывать все адреса и передавать в параметр запрошенный путь
 def hello(path):
-    return """<h1>Hello world!</h1><p>Path is: """ + path
+    return """<h1>Hello world!</h1><p>Path is: """ + path + """."""
 
 
 app.wsgi_app = ProxyFix(app.wsgi_app)  # For Gunicorn
