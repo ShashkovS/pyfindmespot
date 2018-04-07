@@ -15,6 +15,5 @@ eggs/
 venv/
 ENV/
 
-
-
+# PyCharm
 .idea/
