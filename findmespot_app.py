@@ -14,7 +14,7 @@ def internal_error_handler(e):
     message = {
         'status': 500,
         'message': 'API method not found: ' + request.url,
-        'return': {e}
+        'return': {'debug': str(e)}
     }
     response = jsonify(message)
     response.status_code = 500
@@ -37,7 +37,7 @@ def test(args):
 def hello(path):
     args = request.args
     if path == '':
-        return jsonify('It works!')
+        return 'It works!'
     else:
         return eval('{}({})'.format(path, dict(args)))
 
