@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.config["APPLICATION_ROOT"] = "/findmespot"
 # app.config["APPLICATION_ROOT"] = ""
 # @app.route("/")
-API_METHODS = {'test'}
+API_METHODS = {'test', 'test2'}
 
 
 @app.errorhandler(werkzeug.exceptions.BadRequest)
@@ -37,8 +37,23 @@ def internal_error_handler(e=None):
     return response
 
 
+def test2(args):
+    am = int(args.get('am', [10])[0])
+    message = {
+        'status': 200,
+        'message': 'OK',
+        'return': {}
+    }
+    for i in range(am):
+        message['return'][i] = {'latitude': randint(0, 90),
+                                'longitude': randint(0, 180)}
+    response = jsonify(message)
+    response.status_code = 200
+    return response
+
+
 def test(args):
-    message ={
+    message = {
         'status': 200,
         'message': 'OK',
         'return': {'latitude': randint(0, 90),
@@ -53,16 +68,14 @@ def test(args):
 @app.route(app.config["APPLICATION_ROOT"] + '/<path:path>')  # Это — хук для того, чтобы обрабатывать все адреса и передавать в параметр запрошенный путь
 def hello(path):
     args = request.args
+    print(path)
     if path == '':
         return render_template('index.html')
     else:
         if path in API_METHODS:
             return eval('{}({})'.format(path, dict(args)))
         else:
-            return bad_request_error_handler()
-
-
-
+            return bad_request_error_handler(NameError(f'Method {path} not found'))
 
 
 app.wsgi_app = werkzeug.contrib.fixers.ProxyFix(app.wsgi_app)  # For Gunicorn
