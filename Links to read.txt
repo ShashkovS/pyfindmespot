@@ -1,0 +1,6 @@
+nginx
+https://bjornjohansen.no/optimizing-https-nginx
+https://bjornjohansen.no/redirect-to-https-with-nginx
+
+Несколько приложений
+http://michal.karzynski.pl/blog/2013/10/29/serving-multiple-django-applications-with-nginx-gunicorn-supervisor/

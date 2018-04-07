@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Ставим всё и настраиваем вебсервер
 # Работаем в предположении, что nginx уже установлен
 # https://tutorials.technology/tutorials/71-How-to-setup-Flask-with-gunicorn-and-nginx-with-examples.html
