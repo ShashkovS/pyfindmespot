@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import jsonify
 from flask import request
+from flask import render_template
 import werkzeug.contrib.fixers
 import werkzeug.exceptions
 
@@ -51,7 +52,7 @@ def test(args):
 def hello(path):
     args = request.args
     if path == '':
-        return 'It works!'
+        return render_template('index.html')
     else:
         if path in API_METHODS:
             return eval('{}({})'.format(path, dict(args)))
