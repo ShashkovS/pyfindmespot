@@ -14,7 +14,7 @@ def internal_error_handler(e):
     message = {
         'status': 500,
         'message': 'API method not found: ' + request.url,
-        'return': {}
+        'return': {e}
     }
     response = jsonify(message)
     response.status_code = 500
