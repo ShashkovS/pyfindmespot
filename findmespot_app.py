@@ -42,10 +42,11 @@ def test2(args):
     message = {
         'status': 200,
         'message': 'OK',
-        'return': {}
+        'return': {'num_points': am,
+                   'result': {}}
     }
     for i in range(am):
-        message['return'][i] = {'latitude': randint(0, 90),
+        message['return']['result'][i] = {'latitude': randint(0, 90),
                                 'longitude': randint(0, 180)}
     response = jsonify(message)
     response.status_code = 200
@@ -56,8 +57,9 @@ def test(args):
     message = {
         'status': 200,
         'message': 'OK',
-        'return': {'latitude': randint(0, 90),
-                   'longitude': randint(0, 180)}
+        'return': {'num_points': 1,
+                   'result': {'latitude': randint(0, 90),
+                   'longitude': randint(0, 180)}}
     }
     response = jsonify(message)
     response.status_code = 200
