@@ -5,17 +5,17 @@ import werkzeug.contrib.fixers
 import werkzeug.exceptions
 
 app = Flask(__name__)
-app.config["APPLICATION_ROOT"] = "/findmespot"
-# app.config["APPLICATION_ROOT"] = ""
+# app.config["APPLICATION_ROOT"] = "/findmespot"
+app.config["APPLICATION_ROOT"] = ""
 # @app.route("/")
 API_METHODS = {'test'}
 
 
 @app.errorhandler(werkzeug.exceptions.BadRequest)
-def internal_error_handler(e):
+def bad_request_error_handler(e=None):
     message = {
         'status': 400,
-        'message': 'API method not found: ' + request.url,
+        'message': 'Bad request or API method not found: ' + request.url,
         'return': {'debug': str(e)}
     }
     response = jsonify(message)
@@ -24,7 +24,7 @@ def internal_error_handler(e):
 
 
 @app.errorhandler(werkzeug.exceptions.InternalServerError)
-def internal_error_handler(e):
+def internal_error_handler(e=None):
     message = {
         'status': 500,
         'message': 'Internal server error: ' + request.url,
@@ -56,7 +56,7 @@ def hello(path):
         if path in API_METHODS:
             return eval('{}({})'.format(path, dict(args)))
         else:
-            return
+            return bad_request_error_handler()
 
 
 app.wsgi_app = werkzeug.contrib.fixers.ProxyFix(app.wsgi_app)  # For Gunicorn
