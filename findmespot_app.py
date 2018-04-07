@@ -2,6 +2,7 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 from flask import render_template
+from random import randint
 import werkzeug.contrib.fixers
 import werkzeug.exceptions
 
@@ -40,7 +41,8 @@ def test(args):
     message ={
         'status': 200,
         'message': 'OK',
-        'return': dict(args)
+        'return': {'latitude': randint(0, 90),
+                   'longitude': randint(0, 180)}
     }
     response = jsonify(message)
     response.status_code = 200
