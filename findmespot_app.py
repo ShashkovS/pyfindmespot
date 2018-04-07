@@ -47,8 +47,8 @@ def test(args):
     return response
 
 
-@app.route(app.config['APPLICATION_ROOT'] + '/', defaults={'path': ''})  # Это — хук для того, чтобы обрабатывать пустой адрес и передавать в параметр пустой путь
-@app.route(app.config['APPLICATION_ROOT'] + '/<path:path>')  # Это — хук для того, чтобы обрабатывать все адреса и передавать в параметр запрошенный путь
+@app.route('/', defaults={'path': ''})  # Это — хук для того, чтобы обрабатывать пустой адрес и передавать в параметр пустой путь
+@app.route('/<path:path>')  # Это — хук для того, чтобы обрабатывать все адреса и передавать в параметр запрошенный путь
 def hello(path):
     args = request.args
     if path == '':
