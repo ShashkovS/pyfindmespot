@@ -4,6 +4,9 @@ repo_path=/website/findmespot/py_findmespot
 echo 'Обновляем код с githubа'
 cd $repo_path
 git pull origin master
+git fetch --all
+git reset --hard origin/master
+
 
 echo 'Стопим gunicorn'
 systemctl stop gunicorn.socket
