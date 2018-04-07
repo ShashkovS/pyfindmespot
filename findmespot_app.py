@@ -6,8 +6,8 @@ import werkzeug.contrib.fixers
 import werkzeug.exceptions
 
 app = Flask(__name__)
-# app.config["APPLICATION_ROOT"] = "/findmespot"
-app.config["APPLICATION_ROOT"] = ""
+app.config["APPLICATION_ROOT"] = "/findmespot"
+# app.config["APPLICATION_ROOT"] = ""
 # @app.route("/")
 API_METHODS = {'test'}
 
