@@ -10,7 +10,6 @@ app = Flask(__name__)
 app.config["APPLICATION_ROOT"] = "/findmespot"
 # app.config["APPLICATION_ROOT"] = ""
 # @app.route("/")
-API_METHODS = {'test', 'test2'}
 
 
 @app.errorhandler(werkzeug.exceptions.BadRequest)
@@ -66,18 +65,14 @@ def test(args):
     return response
 
 
-@app.route(app.config["APPLICATION_ROOT"] + '/', defaults={'path': ''})  # Это — хук для того, чтобы обрабатывать пустой адрес и передавать в параметр пустой путь
-@app.route(app.config["APPLICATION_ROOT"] + '/<path:path>')  # Это — хук для того, чтобы обрабатывать все адреса и передавать в параметр запрошенный путь
-def hello(path):
-    args = request.args
-    print(path)
-    if path == '':
-        return render_template('index.html')
-    else:
-        if path in API_METHODS:
-            return eval('{}({})'.format(path, dict(args)))
-        else:
-            return bad_request_error_handler(NameError(f'Method {path} not found'))
+@app.route('/')
+def just_index():
+    return render_template('index.html')
+
+#@app.route(app.config["APPLICATION_ROOT"] + '/', defaults={'path': ''})  # Это — хук для того, чтобы обрабатывать пустой адрес и передавать в параметр пустой путь
+@app.route('/test')
+def hello():
+    return test()
 
 
 app.wsgi_app = werkzeug.contrib.fixers.ProxyFix(app.wsgi_app)  # For Gunicorn
