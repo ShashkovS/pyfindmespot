@@ -15,17 +15,17 @@ DB_DEFAULT_PATH = 'db/tracks.db'
 def create_base(path=DB_DEFAULT_PATH):
     with sqlite3.connect(path) as conn:
         c = conn.cursor()
-        c.execute('''CREATE TABLE trips (id int, name text, date_s timestamp, date_e timestamp, key text)''')
-        c.execute('''CREATE INDEX IF NOT EXISTS trips_by_name on trips (key)''')
-        c.execute('''CREATE TABLE waypoints (id int, id_trip int, id_fms text, lat float, long float, ts timestamp)''')
-        c.execute('''CREATE INDEX IF NOT EXISTS waypoints_by_id_trip on waypoints (id_trip)''')
+        c.execute("""CREATE TABLE IF NOT EXISTS trips (id int, name text, date_s timestamp, date_e timestamp, key text)""")
+        c.execute("""CREATE INDEX IF NOT EXISTS trips_by_name on trips (key)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS waypoints (id int, id_trip int, id_fms text, lat float, long float, alt float, ts timestamp)""")
+        c.execute("""CREATE INDEX IF NOT EXISTS waypoints_by_id_trip on waypoints (id_trip)""")
         conn.commit()
 
 def _create_dummy_data(path=DB_DEFAULT_PATH):
     import random
     with sqlite3.connect(path) as conn:
         c = conn.cursor()
-        c.execute(f"""insert into trips values (0, 'trip1', '2018-04-01 00:00:00', '2018-06-01 00:00:00', 'keykey1') """)
+        c.execute(f"""insert into trips values (1, 'trip1', '2018-04-01 00:00:00', '2018-06-01 00:00:00', 'keykey1') """)
         c.execute(f"""insert into trips values (2, 'trip2', '2018-04-02 00:00:00', '2018-06-02 00:00:00', 'keykey2') """)
         c.execute(f"""insert into trips values (3, 'trip3', '2018-04-03 00:00:00', '2018-06-03 00:00:00', 'keykey3') """)
         c.execute(f"""insert into trips values (4, 'trip4', '2018-04-04 00:00:00', '2018-06-04 00:00:00', 'keykey4') """)
@@ -37,17 +37,26 @@ def _create_dummy_data(path=DB_DEFAULT_PATH):
                 lat = random.random()*90
                 long = random.random()*90
                 ts = datetime.datetime(2018, 4, 1, 0, 0, 0) + datetime.timedelta(hours=point_num) + datetime.timedelta(days=id_trip)
-                c.execute(f"""insert into waypoints values (?, ?, ?, ?, ?, ?) """,
-                          (point_num, id_trip, id_fms, lat, long, ts))
+                c.execute(f"""insert into waypoints values (?, ?, ?, ?, ?, ?, ?) """,
+                          (point_num, id_trip, id_fms, lat, long, 500, ts))
+        id_trip = 0
+        c.execute(f"""insert into trips values (0, 'real_trip', '2018-04-05 00:00:00', '2018-06-05 00:00:00', 'real_trip_key') """)
+        with open('db/test_track.txt') as f:
+            data = f.readlines()
+            for point_num, row in enumerate(data):
+                id_fms = f'{id_trip:04}_{point_num:04}'
+                lat, long, alt, ts = row.split()
+                c.execute(f"""insert into waypoints values (?, ?, ?, ?, ?, ?, ?) """,
+                          (point_num, id_trip, id_fms, float(lat), float(long), float(alt), datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ")))
         conn.commit()
 
-        ar2 = c.execute('''select * from waypoints''').fetchall()
+        ar2 = c.execute("""select * from waypoints""").fetchall()
         print(ar2)
 
 
-# create_base()
-# _create_dummy_data()
-# exit()
+create_base()
+_create_dummy_data()
+exit()
 
 
 def fetch_from_findmespot(key, start_ts=ZERO_TS):
@@ -75,7 +84,7 @@ def last_waypoint_time(key, path):
 
 def main():
     # key, path = map(str, input().split())
-    key = 'keykey2'
+    key = 'real_trip_key'
     path = DB_DEFAULT_PATH
     if not os.path.isfile(path):
         create_base(path)
