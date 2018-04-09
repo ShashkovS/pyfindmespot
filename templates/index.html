@@ -1,140 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="googlebot" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript" src="//unpkg.com/vue"></script>
 
-      <script type="text/javascript" src="https://unpkg.com/vue-yandex-maps@0.7.9/vue-yandex-maps.js"></script>
-    
-  
-
-  <style type="text/css">
-    #app {
-  width: 800px;
-  height: 800px;
-}
-
-.ymap {
-  height: 100%;
-}
-  </style>
-
-  <title>мапа</title>
-
-  
-    
+    <script type="text/javascript" src="https://unpkg.com/vue-yandex-maps@0.7.9/vue-yandex-maps.js"></script>
 
 
+    <style type="text/css">
+        #app {
+            width: 800px;
+            height: 800px;
+        }
 
-<script type="text/javascript">
+        .ymap {
+            height: 100%;
+        }
+    </style>
 
-
-
-
-
-window.onload=function(){
-
-
-
-
-
-
-let float = (num, com) => {
-	return (num).toFixed(com);
-}
-
-var comp = new Vue({
-  el: '#app',
-  data: { 
-    coords: [54,  39],
-    placemarks: [/*
-        {
-          coords: [54.82896654088406, 39.831893822753904],
-          properties: {
-            balloonContentBody: 'asdfd',
-            balloonContentFooter: '1',
-            balloonContentHeader: '1'
-          },
-          clusterName: '1',
-          markerId: 1
-        },*
-        {
-          coords: [54.82896654088406, 39.731893822753904],
-          properties: {
-            balloonContentBody: 'asdfasdf',
-            balloonContentFooter: '1',
-            balloonContentHeader: '1'
-          },
-          clusterName: '1',
-          markerId: 2
-        },*/
-        {
-          coords: [54.82896654088406, 39.631893822753904],
-          properties: {
-            balloonContentBody: 'asdfasdf',
-            balloonContentFooter: '1',
-            balloonContentHeader: '1'
-          },
-          clusterName: '1',
-          markerId: 3
-        },//*/
-      ]
-  }
-})
-alert(comp.placemarks[0].coords)
-
-fetch("https://v.shashkovs.ru/findmespot/test")
-	.then((response) => {
-     return response.json();
-     })
-     .then((json) => {
-       var coord = [json.return.result.latitude, json.return.result.longitude];
-    	 alert(coord);
-   		 comp.placemarks.splice(comp.placemarks.length, 1, {
-         coords: coord,
-         properties: {
-           balloonContentBody: 'asdfasdf',
-           balloonContentFooter: '1',
-         	 balloonContentHeader: '1'
-         },
-         clusterName: '1',
-         markerId: 3})
-     })
-     .catch((err) => {
-     alert(err)
-     })
+    <title>мапа</title>
 
 
+    <script type="text/javascript">
 
-}
+
+        window.onload = function () {
+
+            const comp = new Vue({
+                el: '#app',
+                data: {
+                    coords: [54, 39],
+                    placemarks: []
+                }
+            })
+
+            fetch("https://v.shashkovs.ru/findmespot/test")
+                .then((response) => {
+                    return response.json();
+                })
+                .then((json) => {
+                    const coord = [json.return.result.latitude, json.return.result.longitude];
+                    console.log(coord);
+                    comp.placemarks.splice(comp.placemarks.length, 1, {
+                        coords: coord,
+                        properties: {
+                            balloonContentBody: 'asdfasdf',
+                            balloonContentFooter: '1',
+                            balloonContentHeader: '1'
+                        },
+                        clusterName: '1',
+                        markerId: 3
+                    })
+                })
+                .catch((err) => {
+                    alert(err)
+                })
 
 
-</script>
+        }
 
-  
+
+    </script>
+
+
 </head>
 
 <body>
-  <div id="app">
-  <yandex-map
-    class="ymap"
-    :coords="coords"
-    :placemarks="placemarks"
+<div id="app">
+    <yandex-map
+            class="ymap"
+            :coords="coords"
+            :placemarks="placemarks"
     ></yandex-map>
 </div>
 
-  
-  <script>
-  // tell the embed parent frame the height of the content
-  if (window.parent && window.parent.parent){
-    window.parent.parent.postMessage(["resultsFrame", {
-      height: document.body.getBoundingClientRect().height,
-      slug: "oe4dzr3c"
-    }], "*")
-  }
+
+<script>
+    // tell the embed parent frame the height of the content
+    if (window.parent && window.parent.parent) {
+        window.parent.parent.postMessage(["resultsFrame", {
+            height: document.body.getBoundingClientRect().height,
+            slug: "oe4dzr3c"
+        }], "*")
+    }
 </script>
 
 </body>
