@@ -1,4 +1,22 @@
 class ReverseProxied(object):
+    """This middleware can be applied to add HTTP proxy support to an application
+    which access the WSGI environment directly.
+    It sets `REMOTE_ADDR`, `HTTP_HOST`, `wsgi.url_scheme` from `X-Forwarded` headers.
+    Also front-end server can be configured to quietly bind this to a URL other than /
+    and to an HTTP scheme that is different than what is used locally.
+
+    In nginx:
+    location /myprefix/ {
+        proxy_set_header X-Script-Name /myprefix;
+        proxy_set_header X-Scheme $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $server_name;
+    }
+
+    So app will be accessible
+    locally at http://localhost:5001/myapp
+    externally at https://example.com/myprefix/myapp
+    """
     def __init__(self, app):
         self.app = app
 

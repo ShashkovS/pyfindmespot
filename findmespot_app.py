@@ -3,14 +3,10 @@ from flask import jsonify
 from flask import request
 from flask import render_template
 from random import randint
-# import werkzeug.contrib.fixers
-from prefix_proxy_fix import ReverseProxied
+from prefix_and_wsgi_proxy_fix import ReverseProxied
 import werkzeug.exceptions
 
 app = Flask(__name__)
-# app.config["APPLICATION_ROOT"] = "/findmespot"
-# app.config["APPLICATION_ROOT"] = ""
-# @app.route("/")
 
 
 @app.errorhandler(werkzeug.exceptions.BadRequest)
@@ -75,7 +71,6 @@ def hello():
     return test()
 
 
-# app.wsgi_app = werkzeug.contrib.fixers.ProxyFix(app.wsgi_app)  # For Gunicorn
-app.wsgi_app = ReverseProxied(app.wsgi_app)  # For Gunicorn
+app.wsgi_app = ReverseProxied(app.wsgi_app)
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
