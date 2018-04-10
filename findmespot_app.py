@@ -71,6 +71,12 @@ def hello():
     return test()
 
 
+# This is just a test route. It is autotested after deploy
+@app.route('/test_app_is_working_kQK74RxmgPPm69')
+def test_app_is_working():
+    return "Yup! The app is working!"
+
+
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 if __name__ == "__main__":
     app.run(host="0.0.0.0")

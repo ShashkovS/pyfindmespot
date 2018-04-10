@@ -22,7 +22,7 @@ systemctl start gunicorn.socket
 systemctl reload nginx.service
 
 echo 'Тестируем: дёргаем сокет локально'
-curl --unix-socket /website/findmespot/app.socket http | head -n 3
+curl --unix-socket /website/findmespot/app.socket http://localhost/test_app_is_working_kQK74RxmgPPm69 | head -n 5
 
 echo 'Тестируем: дёргаем приложение через вебсервис'
-curl http://v.shashkovs.ru/findmespot/test | head -n 3
+curl http://v.shashkovs.ru/findmespot/test_app_is_working_kQK74RxmgPPm69 | head -n 5
