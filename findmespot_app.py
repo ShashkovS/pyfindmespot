@@ -7,7 +7,7 @@ import werkzeug.contrib.fixers
 import werkzeug.exceptions
 
 app = Flask(__name__)
-app.config["APPLICATION_ROOT"] = "/findmespot"
+# app.config["APPLICATION_ROOT"] = "/findmespot"
 # app.config["APPLICATION_ROOT"] = ""
 # @app.route("/")
 
@@ -69,7 +69,6 @@ def test(args):
 def just_index():
     return render_template('index.html')
 
-#@app.route(app.config["APPLICATION_ROOT"] + '/', defaults={'path': ''})  # Это — хук для того, чтобы обрабатывать пустой адрес и передавать в параметр пустой путь
 @app.route('/test')
 def hello():
     return test()
