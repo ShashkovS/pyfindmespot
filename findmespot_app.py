@@ -9,6 +9,12 @@ import werkzeug.exceptions
 app = Flask(__name__)
 
 
+# This is just a test route. It is autotested after deploy
+@app.route('/test_app_is_working_kQK74RxmgPPm69')
+def test_app_is_working():
+    return "Yup! The app is working!\n"
+
+
 @app.errorhandler(werkzeug.exceptions.BadRequest)
 def bad_request_error_handler(e=None):
     message = {
@@ -69,12 +75,6 @@ def just_index():
 @app.route('/test')
 def hello():
     return test()
-
-
-# This is just a test route. It is autotested after deploy
-@app.route('/test_app_is_working_kQK74RxmgPPm69')
-def test_app_is_working():
-    return "Yup! The app is working!"
 
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
