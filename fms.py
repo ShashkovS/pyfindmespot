@@ -16,13 +16,33 @@ DB_DEFAULT_PATH = 'db/tracks.db'
 def create_base(path=DB_DEFAULT_PATH):
     with sqlite3.connect(path) as conn:
         c = conn.cursor()
-        c.execute("""CREATE TABLE IF NOT EXISTS trips (name text, date_s timestamp, date_e timestamp, fms_key_id text)""")
-        c.execute("""CREATE INDEX IF NOT EXISTS trips_by_name on trips (fms_key_id)""")
-        c.execute("""CREATE TABLE IF NOT EXISTS findmespot_keys (fms_key_id text, fms_key text, last_rqs_ts timestamp, last_waypoint_ts timestamp)""")
-        c.execute("""CREATE INDEX IF NOT EXISTS findmespot_keys_by_last_rqs_ts on findmespot_keys (last_rqs_ts)""")
-        c.execute("""CREATE INDEX IF NOT EXISTS findmespot_keys_by_last_waypoints_ts on findmespot_keys (last_waypoint_ts)""")
-        c.execute("""CREATE TABLE IF NOT EXISTS waypoints (id int, fms_key_id text, id_fms text, lat float, long float, alt float, ts timestamp, batteryState text, msg text)""")
-        c.execute("""CREATE INDEX IF NOT EXISTS waypoints_by_id_trip on waypoints (fms_key_id)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS findmespot_keys (
+                         fms_key_id INTEGER PRIMARY KEY, 
+                         fms_key text, 
+                         last_rqs_ts timestamp, 
+                         last_waypoint_ts timestamp
+                     )""")
+        c.execute("""CREATE UNIQUE INDEX IF NOT EXISTS findmespot_keys_by_fms_key on findmespot_keys (fms_key)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS trips (
+                         name text PRIMARY KEY, 
+                         date_s timestamp, 
+                         date_e timestamp,
+                         fms_key_id int, 
+                         FOREIGN KEY(fms_key_id) REFERENCES findmespot_keys(fms_key_id)
+                     )""")
+        c.execute("""CREATE TABLE IF NOT EXISTS waypoints (
+                         waypoint_id INTEGER PRIMARY KEY, 
+                         fms_key_id int, 
+                         id_from_fms text, 
+                         lat float, 
+                         long float, 
+                         alt float, 
+                         ts timestamp, 
+                         batteryState text, 
+                         msg text,
+                         FOREIGN KEY(fms_key_id) REFERENCES findmespot_keys(fms_key_id)
+                     )""")
+        c.execute("""CREATE INDEX IF NOT EXISTS waypoints_by_fms_key_id on waypoints (fms_key_id)""")
         conn.commit()
 
 
@@ -30,29 +50,32 @@ def _create_dummy_data(path=DB_DEFAULT_PATH):
     import random
     with sqlite3.connect(path) as conn:
         c = conn.cursor()
-        c.execute(f"""insert into trips values ('trip1', '2018-04-01 00:00:00', '2018-06-01 00:00:00', 'keykey1') """)
-        c.execute(f"""insert into trips values ('trip2', '2018-04-02 00:00:00', '2018-06-02 00:00:00', 'keykey2') """)
-        c.execute(f"""insert into trips values ('trip3', '2018-04-03 00:00:00', '2018-06-03 00:00:00', 'keykey3') """)
-        c.execute(f"""insert into trips values ('trip4', '2018-04-04 00:00:00', '2018-06-04 00:00:00', 'keykey4') """)
-        c.execute(f"""insert into trips values ('trip5', '2018-04-05 00:00:00', '2018-06-05 00:00:00', 'keykey5') """)
-
-        # for id_trip in (0,2,3,4,5):
-        #    for point_num in range(random.randint(0, 100)):
-        #        id_fms = f'{id_trip:04}_{point_num:04}'
-        #        lat = random.random()*90
-        #        long = random.random()*90
-        #        ts = datetime.datetime(2018, 4, 1, 0, 0, 0) + datetime.timedelta(hours=point_num) + datetime.timedelta(days=id_trip)
-        #        c.execute(f"""insert into waypoints values (?, ?, ?, ?, ?, ?, ?) """,
-        #                  (point_num, id_trip, id_fms, lat, long, 500, ts))
-        id_trip = 0
-        c.execute(f"""insert into trips values ('real_trip', '2018-04-05 00:00:00', '2018-06-05 00:00:00', 'real_trip_key') """)
+        for fms_key_id in range(2, 5):
+            c.execute(f"""insert into findmespot_keys values ({fms_key_id}, 'asdfsjlibdummy{fms_key_id}', '0001-01-01 00:00:00', '0001-01-01 00:00:00')""")
+            c.execute(f"""insert into trips values ('trip{fms_key_id}', '2018-04-0{fms_key_id} 00:00:00', '2018-06-0{fms_key_id} 00:00:00', {fms_key_id}) """)
+            for point_num in range(random.randint(0, 100)):
+                id_from_fms = f'{fms_key_id:04}_{point_num:04}'
+                lat = random.random()*90
+                long = random.random()*90
+                ts = datetime.datetime(2018, 4, 1, 0, 0, 0) + datetime.timedelta(hours=point_num) + datetime.timedelta(days=fms_key_id)
+                batteryState = 'GOOD'
+                msg = 'Bce cynep!'
+                c.execute(f"""insert into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg) 
+                              values (?, ?, ?, ?, ?, ?, ?, ?) """,
+                          (fms_key_id, id_from_fms, lat, long, 500, ts, batteryState, msg ))
+        fms_key_id = 1
+        c.execute(f"""insert into findmespot_keys values ({fms_key_id}, '0N0t9EXiJA8115ifa6qTkfqNGgxoCpvla', '0001-01-01 00:00:00', '0001-01-01 00:00:00')""")
+        c.execute(f"""insert into trips values ('real_track', '2018-04-0{fms_key_id} 00:00:00', '2018-06-0{fms_key_id} 00:00:00', {fms_key_id}) """)
         with open('db/test_track.txt') as f:
             data = f.readlines()
             for point_num, row in enumerate(data):
-                id_fms = f'{id_trip:04}_{point_num:04}'
+                id_from_fms = f'{fms_key_id:04}_{point_num:04}'
                 lat, long, alt, ts = row.split()
-                c.execute(f"""insert into waypoints values (?, ?, ?, ?, ?, ?, ?, ?, ?) """,
-                          (point_num, id_trip, id_fms, float(lat), float(long), float(alt), datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ"), 'GOOd', 'OK'))
+                batteryState = 'GOOD'
+                msg = 'Bce cynep!'
+                c.execute(f"""insert into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg) 
+                              values (?, ?, ?, ?, ?, ?, ?, ?) """,
+                          (fms_key_id, id_from_fms, lat, long, 500, ts, batteryState, msg ))
         conn.commit()
 
         ar2 = c.execute("""select * from waypoints""").fetchall()
@@ -60,6 +83,7 @@ def _create_dummy_data(path=DB_DEFAULT_PATH):
         
 create_base()
 _create_dummy_data()
+exit()
 
 
 def fetch_from_findmespot(key, start_ts=ZERO_TS):
