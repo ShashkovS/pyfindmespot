@@ -56,12 +56,8 @@ def _create_dummy_data(path=DB_DEFAULT_PATH):
         conn.commit()
 
         ar2 = c.execute("""select * from waypoints""").fetchall()
-
-
-with sqlite3.connect(DB_DEFAULT_PATH) as conn:
-    c = conn.cursor()
-    c.execute("INSERT INTO findmespot_keys VALUES ('0', 'real_trip_key', '2018-03-27 13:50:34', '2018-03-27 13:47:33')")
-    conn.commit()
+        
+        
 create_base()
 _create_dummy_data()
 
