@@ -4,6 +4,7 @@ from flask import request
 from flask import render_template
 from random import randint
 from prefix_and_wsgi_proxy_fix import ReverseProxied
+import geojson
 import werkzeug.exceptions
 
 app = Flask(__name__)
@@ -55,13 +56,12 @@ def test2(args):
     return response
 
 
-def test(args):
+def test(*args, **kwargs):
     message = {
         'status': 200,
         'message': 'OK',
-        'return': {'num_points': 1,
-                   'result': {'latitude': randint(0, 90),
-                   'longitude': randint(0, 180)}}
+        'return': geojson.MultiPoint([(39.9669917, 44.2069527), (40.0135327, 44.2121987), (40.0317781, 44.2076412),
+                                     (40.0376057, 44.1994963), (40.0293180, 44.2000179), (39.9953541, 44.2003035), ])
     }
     response = jsonify(message)
     response.status_code = 200
