@@ -5,37 +5,38 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script type="text/javascript" src="//unpkg.com/vue"></script>
 
-    <script type="text/javascript" src="https://unpkg.com/vue-yandex-maps@0.7.9/vue-yandex-maps.js"></script>
+
+    <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+
+
+    <link rel="stylesheet" type="text/css" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css">
 
 
     <style type="text/css">
-        #app {
-            width: 800px;
-            height: 800px;
-        }
-
-        .ymap {
-            height: 100%;
+        #map {
+            height: 500px;
+            width: 80%;
         }
     </style>
 
-    <title>мапа</title>
+    <title>Leaflet demo by mac_digger</title>
 
 
     <script type="text/javascript">
-
-
         window.onload = function () {
 
-            const comp = new Vue({
-                el: '#app',
-                data: {
-                    coords: [54, 39],
-                    placemarks: []
-                }
-            })
+            // We’ll add a tile layer to add to our map, in this case it’s a OSM tile layer.
+            // Creating a tile layer usually involves setting the URL template for the tile images
+            var osmUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+                osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                osm = L.tileLayer(osmUrl, {
+                    maxZoom: 18,
+                    attribution: osmAttrib
+                });
+
+            // initialize the map on the "map" div with a given center and zoom
+            var map = L.map('map').setView([19.04469, 72.9258], 1000).addLayer(osm);
 
             fetch("https://v.shashkovs.ru/findmespot/test")
                 .then((response) => {
@@ -44,21 +45,17 @@
                 .then((json) => {
                     const coord = [json.return.result.latitude, json.return.result.longitude];
                     console.log(coord);
-                    comp.placemarks.splice(comp.placemarks.length, 1, {
-                        coords: coord,
-                        properties: {
-                            balloonContentBody: 'asdfasdf',
-                            balloonContentFooter: '1',
-                            balloonContentHeader: '1'
-                        },
-                        clusterName: '1',
-                        markerId: 3
-                    })
+                    var marker = L.marker(coord, {
+                        draggable: true,
+                        title: "Resource location",
+                        alt: "Resource Location",
+                        riseOnHover: true
+                    }).addTo(map)
+
                 })
                 .catch((err) => {
                     alert(err)
                 })
-
 
         }
 
@@ -69,21 +66,14 @@
 </head>
 
 <body>
-<div id="app">
-    <yandex-map
-            class="ymap"
-            :coords="coords"
-            :placemarks="placemarks"
-    ></yandex-map>
-</div>
-
+<div id="map"></div>
 
 <script>
     // tell the embed parent frame the height of the content
     if (window.parent && window.parent.parent) {
         window.parent.parent.postMessage(["resultsFrame", {
             height: document.body.getBoundingClientRect().height,
-            slug: "oe4dzr3c"
+            slug: "LnzN2"
         }], "*")
     }
 </script>
