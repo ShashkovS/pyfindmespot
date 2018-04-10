@@ -1,8 +1,4 @@
-from flask import Flask
-from flask import jsonify
-from flask import request
-from flask import render_template
-from random import randint
+from flask import Flask, jsonify, request, render_template
 from prefix_and_wsgi_proxy_fix import ReverseProxied
 import geojson
 import werkzeug.exceptions
@@ -40,28 +36,12 @@ def internal_error_handler(e=None):
     return response
 
 
-def test2(args):
-    am = int(args.get('am', [10])[0])
-    message = {
-        'status': 200,
-        'message': 'OK',
-        'return': {'num_points': am,
-                   'result': {}}
-    }
-    for i in range(am):
-        message['return']['result'][i] = {'latitude': randint(0, 90),
-                                'longitude': randint(0, 180)}
-    response = jsonify(message)
-    response.status_code = 200
-    return response
-
-
 def test(*args, **kwargs):
     message = {
         'status': 200,
         'message': 'OK',
-        'return': geojson.MultiPoint([(39.9669917, 44.2069527), (40.0135327, 44.2121987), (40.0317781, 44.2076412),
-                                     (40.0376057, 44.1994963), (40.0293180, 44.2000179), (39.9953541, 44.2003035), ])
+        'return': geojson.MultiPoint(((39.9669917, 44.2069527), (40.0135327, 44.2121987), (40.0317781, 44.2076412),
+                                      (40.0376057, 44.1994963), (40.0293180, 44.2000179), (39.9953541, 44.2003035), ))
     }
     response = jsonify(message)
     response.status_code = 200
@@ -71,6 +51,7 @@ def test(*args, **kwargs):
 @app.route('/')
 def just_index():
     return render_template('index.html')
+
 
 @app.route('/test')
 def hello():
