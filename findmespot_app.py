@@ -40,10 +40,10 @@ def internal_error_handler(e=None):
 
 @app.route('/test')
 def test(*args, **kwargs):
-    am_dots = dict(request.args).get('amount', [10])[0]
+    am_dots = int(dict(request.args).get('amount', [10])[0])
     points = geojson.MultiPoint()
     for i in range(am_dots):
-        points['coordinates'].append([random.uniform(-90.0, 90.0), random.uniform(0, 180.0)])
+        points['coordinates'].append([random.uniform(-90.0, 90.0), random.uniform(0, 180.0), random.randint(0, 1000)]) # latitude, longitude, altitude
     message = {
         'status': 200,
         'message': 'OK',
@@ -59,7 +59,6 @@ def test(*args, **kwargs):
 @app.route('/')
 def just_index():
     return render_template('index.html')
-
 
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
