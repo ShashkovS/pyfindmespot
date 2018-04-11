@@ -43,7 +43,7 @@ source findmespot_env/bin/activate
 curl https://bootstrap.pypa.io/get-pip.py | python
 deactivate
 source findmespot_env/bin/activate
-pip install gunicorn flask
+pip install gunicorn flask geojson
 
 
 
