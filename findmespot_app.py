@@ -2,7 +2,6 @@ from flask import Flask, jsonify, request, render_template
 from prefix_and_wsgi_proxy_fix import ReverseProxied
 import geojson
 import werkzeug.exceptions
-import os
 import sqlite3
 
 
@@ -50,9 +49,8 @@ def get_waypoints(*args, **kwargs):
         table = cur.execute('''SELECT * FROM trips where name = ?''', (trip_name,))
         name, date_s, date_e, fms_id = table.fetchall()[0]
         waypoints = cur.execute('''SELECT * FROM waypoints where fms_key_id = ?''', (str(fms_id), )).fetchall()
-        am_dots = int(dict(request.args).get('amount', [len(waypoints) - 1])[0])
         features = []
-        for i in range(am_dots):
+        for i in range(len(waypoints)):
             id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[-(i + 1)]
             cur_point = geojson.Point((lat, long, alt))
             features.append(geojson.Feature(geometry=cur_point, properties={'BatteryState': bs,
@@ -61,6 +59,7 @@ def get_waypoints(*args, **kwargs):
         message = {
             'status': 200,
             'message': 'OK',
+            'cnt': len(waypoints),
             'return': geojson.FeatureCollection(features)
         }
         response = jsonify(message)
