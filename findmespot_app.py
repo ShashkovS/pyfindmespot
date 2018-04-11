@@ -2,10 +2,11 @@ from flask import Flask, jsonify, request, render_template
 from prefix_and_wsgi_proxy_fix import ReverseProxied
 import geojson
 import werkzeug.exceptions
-import random
-import datetime
+import sqlite3
+
 
 app = Flask(__name__)
+DB_DEFAULT_PATH = 'db/tracks.db'
 
 
 # This is just a test route. It is autotested after deploy
@@ -38,22 +39,32 @@ def internal_error_handler(e=None):
     return response
 
 
-@app.route('/test')
-def test(*args, **kwargs):
-    am_dots = int(dict(request.args).get('amount', [10])[0])
-    points = geojson.MultiPoint()
-    for i in range(am_dots):
-        points['coordinates'].append([random.uniform(-90.0, 90.0), random.uniform(0, 180.0), random.randint(0, 1000)]) # latitude, longitude, altitude
-    message = {
-        'status': 200,
-        'message': 'OK',
-        'return': geojson.Feature(geometry=points, properties={'track_name': 'Kerzhenec2018', 'amount': am_dots,
-                                                               'time': datetime.datetime.now(),
-                                                               'battery': 100})
-    }
-    response = jsonify(message)
-    response.status_code = 200
-    return response
+@app.route('/get_waypoints')
+def get_waypoints(*args, **kwargs):
+    with sqlite3.connect(DB_DEFAULT_PATH) as con:
+        cur = con.cursor()
+        if 'trip_name' not in dict(request.args):
+            return bad_request_error_handler(NameError(f'Key trip_name not found'))
+        trip_name = dict(request.args)['trip_name'][0]
+        table = cur.execute('''SELECT * FROM trips where name = ?''', (trip_name,))
+        name, date_s, date_e, fms_id = table.fetchall()[0]
+        waypoints = cur.execute('''SELECT * FROM waypoints where fms_key_id = ?''', (str(fms_id), )).fetchall()
+        features = []
+        for i in range(len(waypoints)):
+            id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[-(i + 1)]
+            cur_point = geojson.Point((lat, long, alt))
+            features.append(geojson.Feature(geometry=cur_point, properties={'BatteryState': bs,
+                                                                          'Mesasage': msg,
+                                                                          'TimeStamp': ts}))
+        message = {
+            'status': 200,
+            'message': 'OK',
+            'cnt': len(waypoints),
+            'return': geojson.FeatureCollection(features)
+        }
+        response = jsonify(message)
+        response.status_code = 200
+        return response
 
 
 @app.route('/')

@@ -6,3 +6,5 @@ itsdangerous
 Jinja2
 MarkupSafe
 Werkzeug
+requests
+pyperclip
