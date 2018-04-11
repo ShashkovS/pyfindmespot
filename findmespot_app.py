@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request, render_template
 from prefix_and_wsgi_proxy_fix import ReverseProxied
 import geojson
 import werkzeug.exceptions
+import random
+import datetime
 
 app = Flask(__name__)
 
@@ -36,12 +38,18 @@ def internal_error_handler(e=None):
     return response
 
 
+@app.route('/test')
 def test(*args, **kwargs):
+    am_dots = int(dict(request.args).get('amount', [10])[0])
+    points = geojson.MultiPoint()
+    for i in range(am_dots):
+        points['coordinates'].append([random.uniform(-90.0, 90.0), random.uniform(0, 180.0), random.randint(0, 1000)]) # latitude, longitude, altitude
     message = {
         'status': 200,
         'message': 'OK',
-        'return': geojson.MultiPoint(((39.9669917, 44.2069527), (40.0135327, 44.2121987), (40.0317781, 44.2076412),
-                                      (40.0376057, 44.1994963), (40.0293180, 44.2000179), (39.9953541, 44.2003035), ))
+        'return': geojson.Feature(geometry=points, properties={'track_name': 'Kerzhenec2018', 'amount': am_dots,
+                                                               'time': datetime.datetime.now(),
+                                                               'battery': 100})
     }
     response = jsonify(message)
     response.status_code = 200
@@ -51,11 +59,6 @@ def test(*args, **kwargs):
 @app.route('/')
 def just_index():
     return render_template('index.html')
-
-
-@app.route('/test')
-def hello():
-    return test()
 
 
 app.wsgi_app = ReverseProxied(app.wsgi_app)
