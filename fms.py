@@ -75,6 +75,8 @@ def fetch_from_findmespot(key, start_ts=ZERO_TS):
             lat = messages[mess]['latitude']
             long = messages[mess]['longitude']
             ts = messages[mess]['dateTime']
+            battery_state = messages[mess]['batteryState']
+            msg = messages[mess].get('messageContent', '-')
             # код
         else:
             break
