@@ -9,8 +9,13 @@ import os
 
 
 NOW_TIME = '2018-06-01 00:00:00'
-ZERO_TS = datetime.datetime(1, 1, 1, 0, 0)
+ZERO_TS = datetime.datetime(2000, 1, 1, 0, 0)
 DB_DEFAULT_PATH = 'db/tracks.db'
+FIND_ME_SPOT_URL = r'https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/{key}/message.json?startDate={startDate}'
+
+
+def ts_to_UTC_str(ts):
+    return (ts + datetime.timedelta(hours=-3)).isoformat(sep='T', timespec='seconds') + '-0000'
 
 
 def create_base(path=DB_DEFAULT_PATH):
@@ -87,7 +92,7 @@ exit()
 
 
 def fetch_from_findmespot(key, start_ts=ZERO_TS):
-    url = 'https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/' + key + '/message.json'
+    url = FIND_ME_SPOT_URL.format(key=key, startDate=ts_to_UTC_str(ZERO_TS))
     rq = requests.get(url)
     data_json = rq.content.decode('utf-8')
     data = json.loads(data_json)
@@ -101,6 +106,7 @@ def fetch_from_findmespot(key, start_ts=ZERO_TS):
             ts = messages[mess]['dateTime']
             battery_state = messages[mess]['batteryState']
             msg = messages[mess].get('messageContent', '-')
+
             # код
         else:
             break
