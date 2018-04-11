@@ -40,8 +40,8 @@ def internal_error_handler(e=None):
     return response
 
 
-@app.route('/get_dots')
-def get_dots(*args, **kwargs):
+@app.route('/get_waypoints')
+def get_waypoints(*args, **kwargs):
     with sqlite3.connect(DB_DEFAULT_PATH) as con:
         cur = con.cursor()
         if 'trip_name' not in dict(request.args):
