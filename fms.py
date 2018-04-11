@@ -92,24 +92,32 @@ exit()
 
 
 def fetch_from_findmespot(key, start_ts=ZERO_TS):
-    url = FIND_ME_SPOT_URL.format(key=key, startDate=ts_to_UTC_str(ZERO_TS))
-    rq = requests.get(url)
-    data_json = rq.content.decode('utf-8')
-    data = json.loads(data_json)
-    pyperclip.copy(pprint.pformat(data))
-    messages = data['response']['feedMessageResponse']['messages']['message']
-    for mess in messages:
-        if messages[mess]['dateTime'] > start_ts:  # Ещё будет функция перевода времени.
-            alt = messages[mess]['altitude']
-            lat = messages[mess]['latitude']
-            long = messages[mess]['longitude']
-            ts = messages[mess]['dateTime']
-            battery_state = messages[mess]['batteryState']
-            msg = messages[mess].get('messageContent', '-')
-
-            # код
-        else:
-            break
+    with sqlite3.connect(DB_DEFAULT_PATH) as conn:
+        c = conn.cursor()
+        url = FIND_ME_SPOT_URL.format(key=key, startDate=ts_to_UTC_str(ZERO_TS))
+        rq = requests.get(url)
+        data_json = rq.content.decode('utf-8')
+        data = json.loads(data_json)
+        pyperclip.copy(pprint.pformat(data))
+        messages = data['response']['feedMessageResponse']['messages']['message']
+        for mess in messages:
+            if messages[mess]['dateTime'] > start_ts:  # Ещё будет функция перевода времени.
+                alt = messages[mess]['altitude']
+                lat = messages[mess]['latitude']
+                long = messages[mess]['longitude']
+                ts = messages[mess]['dateTime']
+                battery_state = messages[mess]['batteryState']
+                msg = messages[mess].get('messageContent', '-')
+                fms_key_id = c.execute("SELECT fms_key_id FROM findmespot_keys where fms_key = ?", (key, )).fetchall()[0]
+                id_from_fms = messages[mess]['id']
+                c.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                          (fms_key_id, id_from_fms, lat, long, alt, ts, battery_state, msg))
+                c.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?", (messages[mess]['dateTime'], fms_key_id))
+                c.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (NOW_TIME, fms_key_id))
+                conn.commit()
+            else:
+                break
 
 
 #def last_waypoint_time(key, path):
@@ -139,9 +147,10 @@ def main():
         for id in now_fms_keys_id:
             id = id[0]
             print(id)
-            c.execute("""SELECT last_rqs_ts, last_waypoint_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id, ))
-            print(c.fetchall())
-            # код
+            c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id, ))
+            key, star_t, last_rqs_t = c.fetchall()
+            if last_rqs_t + '0:03:00' <= NOW_TIME:  # нуждается в поправке
+                fetch_from_findmespot(key, star_t)
 
 
 if __name__ == '__main__':
