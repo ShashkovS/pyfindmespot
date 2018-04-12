@@ -8,7 +8,7 @@ from time import strftime, time
 import os
 
 
-NOW_TIME = '2018-06-01 00:00:00'
+NOW_TIME = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
 ZERO_TS = datetime.datetime(2000, 1, 1, 0, 0)
 DB_DEFAULT_PATH = 'db/tracks.db'
 FIND_ME_SPOT_URL = r'https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/{key}/message.json?startDate={startDate}'
@@ -30,7 +30,7 @@ def create_base(path=DB_DEFAULT_PATH):
         c.execute("""CREATE UNIQUE INDEX IF NOT EXISTS findmespot_keys_by_fms_key on findmespot_keys (fms_key)""")
         c.execute("""CREATE TABLE IF NOT EXISTS trips (
                          name text PRIMARY KEY, 
-                         date_s timestamp, 
+                         date_s timestamp,
                          date_e timestamp,
                          fms_key_id int, 
                          FOREIGN KEY(fms_key_id) REFERENCES findmespot_keys(fms_key_id)
@@ -91,52 +91,63 @@ _create_dummy_data()
 exit()
 
 
-def fetch_from_findmespot(key, start_ts=ZERO_TS):
-    with sqlite3.connect(DB_DEFAULT_PATH) as conn:
+def updating_tables(messages: dict, key: str, path=DB_DEFAULT_PATH):
+    with sqlite3.connect(path) as conn:
         c = conn.cursor()
-        url = FIND_ME_SPOT_URL.format(key=key, startDate=ts_to_UTC_str(ZERO_TS))
-        rq = requests.get(url)
-        data_json = rq.content.decode('utf-8')
-        data = json.loads(data_json)
-        pyperclip.copy(pprint.pformat(data))
-        messages = data['response']['feedMessageResponse']['messages']['message']
-        for mess in messages:
-            if messages[mess]['dateTime'] > start_ts:  # Ещё будет функция перевода времени.
-                alt = messages[mess]['altitude']
-                lat = messages[mess]['latitude']
-                long = messages[mess]['longitude']
-                ts = messages[mess]['dateTime']
-                battery_state = messages[mess]['batteryState']
-                msg = messages[mess].get('messageContent', '-')
-                fms_key_id = c.execute("SELECT fms_key_id FROM findmespot_keys where fms_key = ?", (key, )).fetchall()[0]
-                id_from_fms = messages[mess]['id']
-                c.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
+        alt = messages['altitude']
+        lat = messages['latitude']
+        long = messages['longitude']
+        ts = messages['dateTime']
+        battery_state = messages['batteryState']
+        msg = messages.get('messageContent', '-')
+        fms_key_id = c.execute("SELECT fms_key_id FROM findmespot_keys where fms_key = ?", (key, )).fetchall()[0]
+        id_from_fms = messages['id']
+        c.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                          (fms_key_id, id_from_fms, lat, long, alt, ts, battery_state, msg))
-                c.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?", (messages[mess]['dateTime'], fms_key_id))
-                c.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (NOW_TIME, fms_key_id))
-                conn.commit()
-            else:
-                break
+                  (fms_key_id, id_from_fms, lat, long, alt, ts, battery_state, msg))
+        c.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?", (messages['dateTime'], fms_key_id))
+        c.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (NOW_TIME, fms_key_id))
+        conn.commit()
 
 
-def main():
-    key = 'real_trip_key'
+def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     path = DB_DEFAULT_PATH
-    if not os.path.isfile(path):
-        create_base(path)
+    url = FIND_ME_SPOT_URL.format(key=key, startDate=ts_to_UTC_str(ZERO_TS))
+    rq = requests.get(url)
+    data_json = rq.content.decode('utf-8')
+    data = json.loads(data_json)
+    pyperclip.copy(pprint.pformat(data))
+    messages = data['response']['feedMessageResponse']['messages']['message']
+    for mess in messages:
+        if messages[mess]['dateTime'] > start_ts:  # Ещё будет функция перевода времени.
+            updating_tables(messages[mess], key, path)
+        else:
+            break
+
+
+def all_current_trips(path=DB_DEFAULT_PATH):
     with sqlite3.connect(path) as conn:
         c = conn.cursor()
         c.execute("""SELECT fms_key_id FROM trips WHERE date_e >= ?""", (NOW_TIME, ))
-        now_fms_keys_id = c.fetchall()
-        print(now_fms_keys_id)
+        return c.fetchall()
+
+
+def call_fetch_from_fms(path, id):
+    with sqlite3.connect(path) as conn:
+        c = conn.cursor()
+        c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id, ))
+        key, star_t, last_rqs_t = c.fetchall()
+        if datetime.datetime.strptime(last_rqs_t, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(minutes=3) <= datetime.datetime.now():
+            fetch_from_findmespot(key, star_t)
+
+
+def main():
+    path = DB_DEFAULT_PATH
+    if not os.path.isfile(path):
+        create_base(path)
+        now_fms_keys_id = all_current_trips(path)
         for id in now_fms_keys_id:
-            id = id[0]
-            print(id)
-            c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id, ))
-            key, star_t, last_rqs_t = c.fetchall()
-            if datetime.datetime.strptime(last_rqs_t, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(minutes=3) <= datetime.datetime.now():
-                fetch_from_findmespot(key, star_t)
+            call_fetch_from_fms(path, id[0])
 
 
 if __name__ == '__main__':
