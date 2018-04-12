@@ -120,20 +120,6 @@ def fetch_from_findmespot(key, start_ts=ZERO_TS):
                 break
 
 
-#def last_waypoint_time(key, path):
-#    with sqlite3.connect(path) as conn:
-#        c = conn.cursor()
-#        id_trip = c.execute("SELECT id FROM trips WHERE key = ?", (key, )).fetchall()
-#        id_trip = id_trip[0][0]
-#        if not id_trip and id_trip != 0:
-#            return ZERO_TS
-#        last_ts = c.execute("SELECT max(ts) FROM waypoints WHERE id_trip = ?", (id_trip, )).fetchall()
-#        last_ts = last_ts[0][0]
-#        if not last_ts:
-#           return ZERO_TS
-#        return datetime.datetime.strptime(last_ts, "%Y-%m-%d %H:%M:%S")
-
-
 def main():
     key = 'real_trip_key'
     path = DB_DEFAULT_PATH
@@ -149,7 +135,7 @@ def main():
             print(id)
             c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id, ))
             key, star_t, last_rqs_t = c.fetchall()
-            if datetime.datetime.strptime(last_rqs_t, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(hours=3) <= datetime.datetime.now():
+            if datetime.datetime.strptime(last_rqs_t, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(minutes=3) <= datetime.datetime.now():
                 fetch_from_findmespot(key, star_t)
 
 
