@@ -149,7 +149,7 @@ def main():
             print(id)
             c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id, ))
             key, star_t, last_rqs_t = c.fetchall()
-            if last_rqs_t + '0:03:00' <= NOW_TIME:  # нуждается в поправке
+            if datetime.datetime.strptime(last_rqs_t, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(hours=3) <= datetime.datetime.now():
                 fetch_from_findmespot(key, star_t)
 
 
