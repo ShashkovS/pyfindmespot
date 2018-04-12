@@ -51,7 +51,7 @@ def get_waypoints(*args, **kwargs):
         waypoints = cur.execute('''SELECT * FROM waypoints where fms_key_id = ?''', (str(fms_id), )).fetchall()
         features = []
         for i in range(len(waypoints)):
-            id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[-(i + 1)]
+            id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
             cur_point = geojson.Point((lat, long, alt))
             features.append(geojson.Feature(geometry=cur_point, properties={'BatteryState': bs,
                                                                           'Mesasage': msg,
