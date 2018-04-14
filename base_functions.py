@@ -57,19 +57,22 @@ def all_current_trips(path=DB_DEFAULT_PATH):
 
 def updating_tables(messages: dict, key: str, path=DB_DEFAULT_PATH):
     with sqlite3.connect(path) as conn:
-        conn.begin()
-        c = conn.cursor()
-        alt = messages['altitude']
-        lat = messages['latitude']
-        long = messages['longitude']
-        ts = messages['dateTime']
-        battery_state = messages['batteryState']
-        msg = messages.get('messageContent', '-')
-        fms_key_id = c.execute("SELECT fms_key_id FROM findmespot_keys where fms_key = ?", (key, )).fetchall()[0]
-        id_from_fms = messages['id']
-        c.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                  (fms_key_id, id_from_fms, lat, long, alt, ts, battery_state, msg))
-        c.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?", (messages['dateTime'], fms_key_id))
-        c.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (NOW_TIME, fms_key_id))
-        conn.commit()
+        try:
+            conn.begin()
+            c = conn.cursor()
+            alt = messages['altitude']
+            lat = messages['latitude']
+            long = messages['longitude']
+            ts = messages['dateTime']
+            battery_state = messages['batteryState']
+            msg = messages.get('messageContent', '-')
+            fms_key_id = c.execute("SELECT fms_key_id FROM findmespot_keys where fms_key = ?", (key, )).fetchall()[0]
+            id_from_fms = messages['id']
+            c.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                      (fms_key_id, id_from_fms, lat, long, alt, ts, battery_state, msg))
+            c.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?", (messages['dateTime'], fms_key_id))
+            c.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (NOW_TIME, fms_key_id))
+            conn.commit()
+        except:
+            conn.rollback()
