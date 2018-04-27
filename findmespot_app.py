@@ -54,7 +54,7 @@ def get_waypoints(*args, **kwargs):
             id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
             cur_point = geojson.Point((lat, long, alt))
             features.append(geojson.Feature(geometry=cur_point, properties={'BatteryState': bs,
-                                                                          'Mesasage': msg,
+                                                                          'Message': msg,
                                                                           'TimeStamp': ts}))
         message = {
             'status': 200,
