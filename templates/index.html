@@ -40,13 +40,23 @@
                 alert(e);
             }
 
+            function onEachFeature(feature, layer) {
+                var popupContent = "<p></p>";
+
+                if (feature.properties && feature.properties.Message) {
+                    popupContent += feature.properties.Message;
+                }
+
+                layer.bindPopup(popupContent);
+            }
+
             fetch("https://v.shashkovs.ru/findmespot/get_waypoints?trip_name=trip2")
                 .then((response) => {
                     return response.json();
                 })
                 .then((json) => {
                     for (var i of json.return.features) {
-                        L.geoJSON(i).addTo(map);
+                        L.geoJSON(i, {onEachFeature: onEachFeature}).addTo(map);
                     }
                 })
                 .catch((err) => {
