@@ -43,9 +43,9 @@ def call_fetch_from_fms(path, id):
     with sqlite3.connect(path) as conn:
         c = conn.cursor()
         c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id, ))
-        key, star_t, last_rqs_t = c.fetchall()
+        key, start_t, last_rqs_t = c.fetchall()
         if datetime.datetime.strptime(last_rqs_t, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(minutes=3) <= datetime.datetime.now():
-            fetch_from_findmespot(key, star_t)
+            fetch_from_findmespot(key, start_t)
 
 
 def all_current_trips(path=DB_DEFAULT_PATH):
