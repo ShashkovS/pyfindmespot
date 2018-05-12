@@ -78,8 +78,8 @@ def main():
     if not os.path.isfile(path):
         create_base(path)
         now_fms_keys_id = all_current_trips(path)
-        for id in now_fms_keys_id:
-            call_fetch_from_fms(path, id[0])
+    for id in now_fms_keys_id:
+        call_fetch_from_fms(path, id[0])
 
 
 if __name__ == '__main__':
