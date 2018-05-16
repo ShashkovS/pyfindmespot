@@ -2,9 +2,6 @@ import requests
 import json
 import pyperclip
 import pprint
-import sqlite3
-import datetime
-from time import strftime, time
 import os
 from base_functions import *
 
@@ -77,7 +74,7 @@ def main():
     path = DB_DEFAULT_PATH
     if not os.path.isfile(path):
         create_base(path)
-        now_fms_keys_id = all_current_trips(path)
+    now_fms_keys_id = all_current_trips(path)
     for id in now_fms_keys_id:
         call_fetch_from_fms(path, id[0])
 
