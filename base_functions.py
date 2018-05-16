@@ -1,5 +1,6 @@
 import sqlite3
 import datetime
+from fms import *
 
 
 DB_DEFAULT_PATH = 'db/tracks.db'
@@ -55,6 +56,14 @@ def all_current_trips(path=DB_DEFAULT_PATH):
         return c.fetchall()
 
 
+def checking_last_time(fms_key_id, ts, path=DB_DEFAULT_PATH):
+    with sqlite3.connect(path) as conn:
+        c = conn.cursor()
+        c.execute("SELECT last_waypoint_ts FROM findmespot_keys where fms_key_id = ?", (fms_key_id, ))
+        time = c.fetchall()[0]
+        return time < ts
+
+
 def updating_tables(messages: dict, key: str, path=DB_DEFAULT_PATH):
     with sqlite3.connect(path) as conn:
         try:
@@ -71,9 +80,7 @@ def updating_tables(messages: dict, key: str, path=DB_DEFAULT_PATH):
             c.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
                               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                       (fms_key_id, id_from_fms, lat, long, alt, ts, battery_state, msg))
-            c.execute("SELECT last_waypoint_ts FROM findmespot_keys where fms_key_id = ?", (fms_key_id))
-            time = c.fetchall()[0]
-            if time < ts:
+            if checking_last_time(fms_key_id, ts):
                 c.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?", (ts, fms_key_id))
             c.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (NOW_TIME, fms_key_id))
             conn.commit()
