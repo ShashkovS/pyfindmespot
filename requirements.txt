@@ -1,6 +1,7 @@
 click
 Flask
 geojson
+gpxpy
 gunicorn
 itsdangerous
 Jinja2
