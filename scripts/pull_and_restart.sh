@@ -7,6 +7,12 @@ git pull origin master
 git fetch --all
 git reset --hard origin/master
 
+echo 'Переходим в venv'
+source findmespot_env/bin/activate
+
+echo 'Ставим библиотеки'
+pip install py_findmespot/requirements.txt
+
 
 echo 'Стопим gunicorn'
 systemctl stop gunicorn.socket
