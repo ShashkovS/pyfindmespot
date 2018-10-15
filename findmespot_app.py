@@ -42,11 +42,11 @@ def internal_error_handler(e=None):
 
 @app.route('/get_waypoints')
 def get_waypoints(*args, **kwargs):
+    if 'trip_name' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key trip_name not found'))
+    trip_name = dict(request.args)['trip_name'][0]
     with sqlite3.connect(DB_DEFAULT_PATH) as con:
         cur = con.cursor()
-        if 'trip_name' not in dict(request.args):
-            return bad_request_error_handler(NameError(f'Key trip_name not found'))
-        trip_name = dict(request.args)['trip_name'][0]
         table = cur.execute('''SELECT * FROM trips where name = ?''', (trip_name,))
         name, date_s, date_e, fms_id = table.fetchall()[0]
         waypoints = cur.execute('''SELECT * FROM waypoints where fms_key_id = ?''', (str(fms_id),)).fetchall()
@@ -70,6 +70,9 @@ def get_waypoints(*args, **kwargs):
 
 @app.route('/get_gpx_waypoints')
 def generate_gpx(*args, **kwargs):
+    if 'trip_name' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key trip_name not found'))
+    trip_name = dict(request.args)['trip_name'][0]
     gpx = gpxpy.gpx.GPX()
     gpx_track = gpxpy.gpx.GPXTrack()
     gpx.tracks.append(gpx_track)
@@ -77,9 +80,6 @@ def generate_gpx(*args, **kwargs):
     gpx_track.segments.append(gpx_segment)
     with sqlite3.connect(DB_DEFAULT_PATH) as con:
         cur = con.cursor()
-        if 'trip_name' not in dict(request.args):
-            return bad_request_error_handler(NameError(f'Key trip_name not found'))
-        trip_name = dict(request.args)['trip_name'][0]
         table = cur.execute('''SELECT * FROM trips where name = ?''', (trip_name,))
         name, date_s, date_e, fms_id = table.fetchall()[0]
         waypoints = cur.execute('''SELECT * FROM waypoints where fms_key_id = ?''', (str(fms_id),)).fetchall()
