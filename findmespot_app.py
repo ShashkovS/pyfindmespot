@@ -1,9 +1,10 @@
-from flask import Flask, jsonify, request, render_template, Response
+from flask import Flask, jsonify, request, render_template, Response, send_file
 from prefix_and_wsgi_proxy_fix import ReverseProxied
 import datetime
 import gpxpy.gpx
 import geojson
 import werkzeug.exceptions
+from werkzeug.datastructures import Headers
 from base_functions import get_waypoints_by_trip
 
 app = Flask(__name__)
@@ -81,7 +82,10 @@ def generate_gpx(*args, **kwargs):
         cur_pnt = gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts_time)
         cur_pnt.description = f"Время: {ts}\n Заряд батареи {bs}\n"
         gpx_segment.points.append(cur_pnt)
-    return Response(gpx.to_xml(), mimetype="text/xml")
+    hdrs = Headers()
+    hdrs.add('Content-Type', 'application/gpx+xml')
+    hdrs.add('Content-Disposition', 'attachment', filename='track.pgx')
+    return Response(gpx.to_xml(), headers=hdrs)
 
 
 @app.route('/')
