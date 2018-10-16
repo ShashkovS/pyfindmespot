@@ -2,13 +2,22 @@ import sqlite3
 import datetime
 from fms import *
 
-
-DB_DEFAULT_PATH = 'db/tracks.db'
+sqlite_db_path = 'db/tracks.db'
 NOW_TIME = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
 
 
-def create_base(path=DB_DEFAULT_PATH):
-    with sqlite3.connect(path) as conn:
+def set_db_path(db_path):
+    global sqlite_db_path
+    sqlite_db_path = db_path
+
+
+def check_base():
+    if not os.path.isfile(sqlite_db_path):
+        _create_base()
+
+
+def _create_base():
+    with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
         c.execute("""CREATE TABLE IF NOT EXISTS findmespot_keys (
                          fms_key_id INTEGER PRIMARY KEY, 
@@ -40,42 +49,43 @@ def create_base(path=DB_DEFAULT_PATH):
         conn.commit()
 
 
-def call_fetch_from_fms(path, id):
-    with sqlite3.connect(path) as conn:
+def call_fetch_from_fms(id):
+    with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
-        c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id, ))
+        c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id,))
         key, start_t, last_rqs_t = c.fetchall()
-        if datetime.datetime.strptime(last_rqs_t, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(minutes=3) <= datetime.datetime.now():
+        if datetime.datetime.strptime(last_rqs_t, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(
+                minutes=3) <= datetime.datetime.now():
             fetch_from_findmespot(key, start_t)
 
 
-def all_current_trips(path=DB_DEFAULT_PATH):
-    with sqlite3.connect(path) as conn:
+def all_current_trips():
+    with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
-        c.execute("""SELECT fms_key_id FROM trips WHERE date_e >= ?""", (NOW_TIME, ))
+        c.execute("""SELECT fms_key_id FROM trips WHERE date_e >= ?""", (NOW_TIME,))
         return c.fetchall()
 
 
-def checking_last_time(fms_key_id, ts, path=DB_DEFAULT_PATH):
-    with sqlite3.connect(path) as conn:
+def checking_last_time(fms_key_id, ts):
+    with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
-        c.execute("SELECT last_waypoint_ts FROM findmespot_keys where fms_key_id = ?", (fms_key_id, ))
+        c.execute("SELECT last_waypoint_ts FROM findmespot_keys where fms_key_id = ?", (fms_key_id,))
         time = c.fetchall()[0]
         return time < ts
 
 
-def updating_tables(messages: dict, key: str, path=DB_DEFAULT_PATH):
-    with sqlite3.connect(path) as conn:
+def update_tables(messages: dict, key: str):
+    alt = messages['altitude']
+    lat = messages['latitude']
+    long = messages['longitude']
+    ts = messages['dateTime']
+    battery_state = messages['batteryState']
+    msg = messages.get('messageContent', '')
+    with sqlite3.connect(sqlite_db_path) as conn:
         try:
             conn.begin()
             c = conn.cursor()
-            alt = messages['altitude']
-            lat = messages['latitude']
-            long = messages['longitude']
-            ts = messages['dateTime']
-            battery_state = messages['batteryState']
-            msg = messages.get('messageContent', '')
-            fms_key_id = c.execute("SELECT fms_key_id FROM findmespot_keys where fms_key = ?", (key, )).fetchall()[0]
+            fms_key_id = c.execute("SELECT fms_key_id FROM findmespot_keys where fms_key = ?", (key,)).fetchall()[0]
             id_from_fms = messages['id']
             c.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
                               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -86,3 +96,12 @@ def updating_tables(messages: dict, key: str, path=DB_DEFAULT_PATH):
             conn.commit()
         except:
             conn.rollback()
+
+
+def get_waypoints_by_trip(trip_name: str):
+    with sqlite3.connect(sqlite_db_path) as con:
+        cur = con.cursor()
+        table = cur.execute('''SELECT * FROM trips where name = ?''', (trip_name,))
+        name, date_s, date_e, fms_id = table.fetchall()[0]
+        waypoints = cur.execute('''SELECT * FROM waypoints where fms_key_id = ?''', (str(fms_id),)).fetchall()
+    return waypoints
