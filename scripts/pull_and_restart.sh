@@ -8,10 +8,10 @@ git fetch --all
 git reset --hard origin/master
 
 echo 'Переходим в venv'
-source findmespot_env/bin/activate
+source ../findmespot_env/bin/activate
 
 echo 'Ставим библиотеки'
-pip install py_findmespot/requirements.txt
+pip install -r requirements.txt
 
 
 echo 'Стопим gunicorn'
