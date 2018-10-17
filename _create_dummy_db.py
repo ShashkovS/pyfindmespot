@@ -8,9 +8,9 @@ def _create_dummy_data(path=sqlite_db_path):
         c = conn.cursor()
         for fms_key_id in range(2, 5):
             c.execute(
-                f"""insert into findmespot_keys values ({fms_key_id}, 'asdfsjlibdummy{fms_key_id}', '0001-01-01 00:00:00', '0001-01-01 00:00:00')""")
+                f"""insert into findmespot_keys values ({fms_key_id}, 'asdfsjlibdummy{fms_key_id}', '0001-01-01T00:00:00Z', '0001-01-01T00:00:00Z')""")
             c.execute(
-                f"""insert into trips values ('trip{fms_key_id}', '2018-04-0{fms_key_id} 00:00:00', '2018-06-0{fms_key_id} 00:00:00', {fms_key_id}) """)
+                f"""insert into trips values ('trip{fms_key_id}', '2018-04-0{fms_key_id}T00:00:00Z', '2018-06-0{fms_key_id}T00:00:00Z', {fms_key_id}) """)
             for point_num in range(random.randint(0, 100)):
                 id_from_fms = f'{fms_key_id:04}_{point_num:04}'
                 lat = random.random() * 90
@@ -24,9 +24,9 @@ def _create_dummy_data(path=sqlite_db_path):
                           (fms_key_id, id_from_fms, lat, long, 500, ts, batteryState, msg))
         fms_key_id = 1
         c.execute(
-            f"""insert into findmespot_keys values ({fms_key_id}, '0N0t9EXiJA8115ifa6qTkfqNGgxoCpvla', '0001-01-01 00:00:00', '0001-01-01 00:00:00')""")
+            f"""insert into findmespot_keys values ({fms_key_id}, '0N0t9EXiJA8115ifa6qTkfqNGgxoCpvla', '0001-01-01T00:00:00Z', '0001-01-01T00:00:00Z')""")
         c.execute(
-            f"""insert into trips values ('real_track', '2018-04-0{fms_key_id} 00:00:00', '2018-06-0{fms_key_id} 00:00:00', {fms_key_id}) """)
+            f"""insert into trips values ('real_track', '2018-04-0{fms_key_id}T00:00:00Z', '2018-06-0{fms_key_id}T00:00:00Z', {fms_key_id}) """)
         with open('db/test_track.txt') as f:
             data = f.readlines()
             for point_num, row in enumerate(data):

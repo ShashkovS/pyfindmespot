@@ -1,9 +1,16 @@
 import sqlite3
 import datetime
-from fms import *
+import os
 
 sqlite_db_path = r'db/tracks2.db'
-NOW_TIME = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+NOW_TIME = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def fms_ts_to_UTC_ts(ts_utc):
+    ts = [ts_utc[:19], "-", ts_utc[20:]]
+    ts[-1] = ts[-1][:2] + ":" + ts[-1][2:]
+    ts_utc = ''.join(ts)
+    return datetime.datetime.fromisoformat(ts_utc).astimezone(datetime.timezone.utc)
 
 
 def set_db_path(db_path):
@@ -49,14 +56,11 @@ def _create_base():
         conn.commit()
 
 
-def call_fetch_from_fms(id):
+def get_trip_attributes(id):
     with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
         c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id,))
-        key, start_t, last_rqs_t = c.fetchall()
-        if datetime.datetime.strptime(last_rqs_t, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(
-                minutes=3) <= datetime.datetime.now():
-            fetch_from_findmespot(key, start_t)
+        return c.fetchall()
 
 
 def all_current_trips():
@@ -79,6 +83,7 @@ def update_tables(messages: dict, key: str):
     lat = messages['latitude']
     long = messages['longitude']
     ts = messages['dateTime']
+    ts = fms_ts_to_UTC_ts(ts)
     battery_state = messages['batteryState']
     msg = messages.get('messageContent', '')
     with sqlite3.connect(sqlite_db_path) as conn:
