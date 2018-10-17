@@ -80,7 +80,7 @@ def generate_gpx(*args, **kwargs):
         id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
         ts_time = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ")
         cur_pnt = gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts_time)
-        # cur_pnt.description = f"Время: {ts} Заряд батареи {bs}"
+        cur_pnt.description = f"Время: {ts} Заряд батареи {bs}"
         gpx_segment.points.append(cur_pnt)
     hdrs = Headers()
     hdrs.add('Content-Type', 'application/gpx+xml')
