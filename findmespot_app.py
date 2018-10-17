@@ -8,7 +8,7 @@ from werkzeug.datastructures import Headers
 from base_functions import get_waypoints_by_trip
 
 app = Flask(__name__)
-sqlite_db_path = r'db\tracks.db'
+sqlite_db_path = r'db\tracks2.db'
 
 
 # This is just a test route. It is autotested after deploy
@@ -80,7 +80,7 @@ def generate_gpx(*args, **kwargs):
         id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
         ts_time = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ")
         cur_pnt = gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts_time)
-        cur_pnt.description = f"Время: {ts}\n Заряд батареи {bs}\n"
+        # cur_pnt.description = f"Время: {ts} Заряд батареи {bs}"
         gpx_segment.points.append(cur_pnt)
     hdrs = Headers()
     hdrs.add('Content-Type', 'application/gpx+xml')

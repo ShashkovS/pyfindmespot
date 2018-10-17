@@ -2,7 +2,7 @@ import sqlite3
 import datetime
 from fms import *
 
-sqlite_db_path = 'db/tracks.db'
+sqlite_db_path = r'db/tracks2.db'
 NOW_TIME = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
 
 
