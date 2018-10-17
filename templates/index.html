@@ -1,10 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="googlebot" content="noindex, nofollow">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
 
     <title>Please, sign up or log in</title>
 
@@ -12,16 +10,22 @@
 
 <body>
     <form method="post">
-        <div>
-            <label for="from">от</label>
-            <input type="date" name="from" id="from" required/>
-            <label for="from">до</label>
-            <input type="date" name="to" id="to" required/>
+        <div class="flex-box">
+            <div>
+                <label for="from">От</label>
+                <input type="date" name="from" id="from" required/>
+                <label for="from">До</label>
+                <input type="date" name="to" id="to" required/>
+            </div>
+            <div>
+                <label for="trip_name">Имя поездки</label>
+                <input type="text" name="trip_name" id="trip_name"/>
+            </div>
+            <div>
+                <label for="fms_key">Ключ трека на findmespot</label>
+                <input type="text" name="fms_key" id="fms_key"/>
+            </div>
         </div>
-        <input type="text" name="trip_name" id="trip_name"/>
-        <label for="trip_name">имя поездки</label>
-        <input type="text" name="fms_key" id="fms_key"/>
-        <label for="fms_key">ключ трека на findmespot</label>
     </form>
 
 </body>
