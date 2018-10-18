@@ -22,7 +22,7 @@ form {
 
 /* Поля ввода */
 input {
-    width: 75%;
+    width: 60%;
     height: 48px;
     border: 1px solid rgba(255,255,255,.4);
     -moz-border-radius: 4px;
@@ -31,24 +31,31 @@ input {
     -moz-background-clip: padding;
     -webkit-background-clip: padding-box;
     background-clip: padding-box;
-    display:block;
+    display: block;
     font-family: 'Open Sans', sans-serif;
-    font-size:18px;
+    font-size: 18px;
     font-weight: 300;
     color:#fff;
     padding-left:20px;
     padding-right:20px;
-    margin-bottom:20px;
+    margin: 0 auto 20px auto;
     background: rgba(255, 255, 255, 0.4);
 }
 
 label {
-    margin: 5px;
     font-weight: bold;
 }
 
 input[type=submit] {
     cursor:pointer;
+}
+
+input[type=date] {
+    width: 20%;
+}
+
+input:hover {
+    border-color: white;
 }
 
 
@@ -111,7 +118,6 @@ input:focus {
     color: #fff;
  }
 .btn:active {
-    margin-top:1px;
     text-shadow: #333333 0 -1px 0;
     border: 1px solid #333333;
     background: #ffCC00;
