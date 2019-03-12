@@ -11,7 +11,6 @@ FIND_ME_SPOT_URL = r'https://api.findmespot.com/spot-main-web/consumer/rest-api/
 def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     key, finish_ts, last_rqs_t = get_trip_attributes(key)
     finish_ts = datetime.datetime.strptime(finish_ts, "%Y-%m-%dT%H:%M:%SZ")
-    last_rqs_t = datetime.datetime.strptime(last_rqs_t, "%Y-%m-%dT%H:%M:%SZ")
     if datetime.datetime.now(datetime.timezone.utc) > finish_ts:
         return
     url = FIND_ME_SPOT_URL.format(key=key, startDate=finish_ts, endDate=datetime.datetime.now(datetime.timezone.utc))
