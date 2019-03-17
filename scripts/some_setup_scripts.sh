@@ -314,11 +314,15 @@ restorecon -r -v /web/pyfindmespot/pyfindmespot
 tail -f /var/log/audit/audit.log
 
 # сделать запускаемым
-chmod 774 /web/pyfindmespot/pyfindmespot/cgi-bin/github_commit_webhook.py
+chmod 774 /web/pyfindmespot/cgi-bin/github_commit_webhook.py
+chown -R pyfindmespot:pyfindmespot /web/pyfindmespot/
+chmod -R 774 /web/pyfindmespot/pyfindmespot
 
 # Проверка прав
-namei -l /web/pyfindmespot/pyfindmespot/cgi-bin/github_commit_webhook.py
+namei -l /web/pyfindmespot/cgi-bin/github_commit_webhook.py
 sudo -u nginx /web/pyfindmespot/cgi-bin/github_commit_webhook.py
+
+
 
 # Разрешим nginx'у перезапускать сервис
 rm -f /etc/sudoers.d/pyfindmespot
