@@ -11,7 +11,7 @@ Group=nginx
 RuntimeDirectory=gunicorn
 WorkingDirectory=/web/pyfindmespot/pyfindmespot
 Environment="PATH=/web/pyfindmespot/pyfindmespot_env/bin"
-ExecStart=/web/pyfindmespot/pyfindmespot_env/bin/gunicorn  --pid /web/pyfindmespot/pyfindmespot.pid  --workers 1  --bind unix:/web/pyfindmespot/pyfindmespot.socket  -m 007  pypyfindmespot_app:app
+ExecStart=/web/pyfindmespot/pyfindmespot_env/bin/gunicorn  --pid /web/pyfindmespot/pyfindmespot.pid  --workers 1  --bind unix:/web/pyfindmespot/pyfindmespot.socket  -m 007  pyfindmespot_app:app
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
 PrivateTmp=true
