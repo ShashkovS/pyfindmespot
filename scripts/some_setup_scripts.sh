@@ -318,10 +318,19 @@ chmod 774 /web/pyfindmespot/pyfindmespot/cgi-bin/github_commit_webhook.py
 
 # Проверка прав
 namei -l /web/pyfindmespot/pyfindmespot/cgi-bin/github_commit_webhook.py
-sudo -u nginx /web/pyfindmespot/pyfindmespot/cgi-bin/github_commit_webhook.py
+sudo -u nginx /web/pyfindmespot/cgi-bin/github_commit_webhook.py
 
+# Разрешим nginx'у перезапускать сервис
+rm -f /etc/sudoers.d/pyfindmespot
+touch /etc/sudoers.d/pyfindmespot
+echo '
+%nginx ALL= NOPASSWD: /bin/systemctl stop gunicorn.pyfindmespot.socket
+%nginx ALL= NOPASSWD: /bin/systemctl start gunicorn.pyfindmespot.socket
+%nginx ALL= NOPASSWD: /bin/systemctl restart gunicorn.pyfindmespot.socket
+' >> /etc/sudoers.d/pyfindmespot
 
-
+# Проверка прав
+sudo -u nginx /web/pyfindmespot/cgi-bin/pull_and_restart.sh
 
 
 
