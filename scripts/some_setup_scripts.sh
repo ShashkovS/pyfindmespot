@@ -273,27 +273,52 @@ systemctl reload nginx.service
 
 
 
+# cgi
+yum groupinstall 'Development Tools'
+yum install fcgi-devel spawn-fcgi
+cd /usr/local/src/
+git clone git://github.com/gnosek/fcgiwrap.git
+cd fcgiwrap
+autoreconf -i
+./configure
+make
+make install
+echo '
+FCGI_SOCKET=/var/run/fcgiwrap.socket
+FCGI_PROGRAM=/usr/local/sbin/fcgiwrap
+FCGI_USER=nginx
+FCGI_GROUP=nginx
+FCGI_EXTRA_OPTIONS="-M 0700"
+OPTIONS="-u $FCGI_USER -g $FCGI_GROUP -s $FCGI_SOCKET -S $FCGI_EXTRA_OPTIONS -F 1 -P /var/run/spawn-fcgi.pid -- $FCGI_PROGRAM"
+' >> /etc/sysconfig/spawn-fcgi
+
+# OPTIONS="-u $FCGI_USER -g $FCGI_GROUP -s $FCGI_SOCKET -S $FCGI_EXTRA_OPTIONS -F 1 -P /var/run/spawn-fcgi.pid -- $FCGI_PROGRAM -f"
+# чтобы логи пробрасывались в nginx
 
 
+systemctl start spawn-fcgi
+file /var/run/fcgiwrap.socket
+chkconfig --add spawn-fcgi
 
 
+#  установим консольные утилиты для управления политиками SELinux:
+yum install -y policycoreutils-python policycoreutils-newrole policycoreutils-restorecond setools-console
 
+# Разрешаем запускать cgi в папке
+semanage fcontext -a -t httpd_sys_script_exec_t "/web/pyfindmespot/pyfindmespot/cgi-bin(/.*)?"
+semanage fcontext -a -t httpd_sys_rw_content_t "/web/pyfindmespot/pyfindmespot/cgi-bin(/.*)?"
+semanage fcontext -a -t httpd_var_run_t '/var/run/fcgiwrap(/.*)?'
+restorecon -r -v /web/pyfindmespot/pyfindmespot
 
+# логи безопасности
+tail -f /var/log/audit/audit.log
 
+# сделать запускаемым
+chmod 774 /web/pyfindmespot/pyfindmespot/cgi-bin/github_commit_webhook.py
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Проверка прав
+namei -l /web/pyfindmespot/pyfindmespot/cgi-bin/github_commit_webhook.py
+sudo -u nginx /web/pyfindmespot/pyfindmespot/cgi-bin/github_commit_webhook.py
 
 
 
