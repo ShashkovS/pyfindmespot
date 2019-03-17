@@ -1,0 +1,8 @@
+[Unit]
+Description=gunicorn.pyfindmespot.socket
+
+[Socket]
+ListenStream=/web/pyfindmespot/pyfindmespot.socket
+
+[Install]
+WantedBy=sockets.target
