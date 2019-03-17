@@ -3,9 +3,7 @@ repo_path=/web/pyfindmespot/pyfindmespot
 
 echo 'Обновляем код с githubа'
 cd $repo_path
-git pull origin master
-git fetch --all
-git reset --hard origin/master
+git reset --hard HEAD && git pull origin master
 
 echo 'Переходим в venv'
 source ../pyfindmespot_env/bin/activate
