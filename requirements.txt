@@ -4,7 +4,6 @@ geojson
 gpxpy
 gunicorn
 itsdangerous
-Jinja2
 MarkupSafe
 Werkzeug
 requests
