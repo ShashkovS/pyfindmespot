@@ -36,7 +36,7 @@ except:
 header_signature = os.environ.get('HTTP_X_HUB_SIGNATURE', '')
 sha_name, signature, *_ = header_signature.split('=') + ['']
 
-secret = "ctiaZpdT4WnwR6JxWahYGK9ERLbwTWi2"
+secret = "???"
 mac = hmac.new(secret.encode('utf-8'), msg=raw_payload.encode('utf-8'), digestmod='sha1')
 hexdigest = str(mac.hexdigest())
 
