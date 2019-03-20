@@ -7,6 +7,10 @@ sqlite_db_path = r'db/tracks2.db'
 NOW_TIME = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def UTC_ts_to_fms_ts(dt):
+    return dt.astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z")
+
+
 def fms_ts_to_UTC_ts(ts_utc):
     ts = [ts_utc[:19], "-", ts_utc[20:]]
     ts[-1] = ts[-1][:2] + ":" + ts[-1][2:]
