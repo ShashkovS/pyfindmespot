@@ -32,6 +32,7 @@ def db_ts_to_UTC_ts(ts_utc):
 def set_db_path(db_path):
     global sqlite_db_path
     sqlite_db_path = db_path
+    print(f'sqlite_db_path = {sqlite_db_path!r}')
 
 
 def check_base():

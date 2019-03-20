@@ -11,7 +11,7 @@ from dateutil.parser import parse
 
 app = Flask(__name__)
 APP_PATH = os.path.dirname(os.path.realpath(__file__))
-sqlite_db_path = APP_PATH + r'\db\tracks2.db'
+sqlite_db_path = os.path.join(APP_PATH, 'db', 'tracks2.db')
 set_db_path(sqlite_db_path)
 
 
