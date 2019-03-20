@@ -107,7 +107,7 @@ def create_track(*args, **kwargs):
     fms_key = dict(request.args)['fms_key']
     print(request.args)
     date_s = parse(dict(request.args)['date_s'], fuzzy=True)
-    date_e = parse(dict(request.args)['date_s'], fuzzy=True)
+    date_e = parse(dict(request.args)['date_e'], fuzzy=True)
     create_new_trip(trip_name, fms_key, date_s, date_e)
     message = {
         'status': 200,

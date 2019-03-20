@@ -4,7 +4,8 @@ import sqlite3
 import datetime
 
 sqlite_db_path = r'db/tracks2.db'
-NOW_TIME = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+DB_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+NOW_TIME = datetime.datetime.now().astimezone(datetime.timezone.utc).strftime(DB_TIME_FORMAT)
 
 
 def UTC_ts_to_fms_ts(dt):
@@ -12,10 +13,8 @@ def UTC_ts_to_fms_ts(dt):
 
 
 def fms_ts_to_UTC_ts(ts_utc):
-    ts = [ts_utc[:19], "-", ts_utc[20:]]
-    ts[-1] = ts[-1][:2] + ":" + ts[-1][2:]
-    ts_utc = ''.join(ts)
-    return datetime.datetime.fromisoformat(ts_utc).astimezone(datetime.timezone.utc)
+    dt = datetime.datetime.strptime(ts_utc, "%Y-%m-%dT%H:%M:%S%z")
+    return dt.astimezone(datetime.timezone.utc)
 
 
 def set_db_path(db_path):
@@ -78,8 +77,9 @@ def all_current_trips():
 def checking_last_time(fms_key_id, ts):
     with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
-        c.execute("SELECT last_waypoint_ts FROM findmespot_keys where fms_key_id = ?", (fms_key_id,))
-        time = c.fetchall()[0]
+        time = \
+        c.execute("SELECT last_waypoint_ts FROM findmespot_keys where fms_key_id = ?", (fms_key_id,)).fetchall()[0][0]
+        time = datetime.datetime.strptime(time, DB_TIME_FORMAT).astimezone(datetime.timezone.utc)
         return time < ts
 
 
@@ -93,15 +93,15 @@ def update_tables(messages: dict, key: str):
     msg = messages.get('messageContent', '')
     with sqlite3.connect(sqlite_db_path) as conn:
         try:
-            conn.begin()
             c = conn.cursor()
-            fms_key_id = c.execute("SELECT fms_key_id FROM findmespot_keys where fms_key = ?", (key,)).fetchall()[0]
+            fms_key_id = c.execute("SELECT fms_key_id FROM findmespot_keys where fms_key = ?", (key,)).fetchall()[0][0]
             id_from_fms = messages['id']
             c.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
                               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                       (fms_key_id, id_from_fms, lat, long, alt, ts, battery_state, msg))
             if checking_last_time(fms_key_id, ts):
-                c.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?", (ts, fms_key_id))
+                c.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?",
+                          (ts.strftime(DB_TIME_FORMAT), fms_key_id))
             c.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (NOW_TIME, fms_key_id))
             conn.commit()
         except:
@@ -117,12 +117,17 @@ def get_waypoints_by_trip(trip_name: str):
     return waypoints
 
 
-def create_new_trip(trip_name: str, fms_trip_id: str, date_start, date_end):
+def create_new_trip(trip_name: str, fms_trip_id: str, date_start: datetime.datetime, date_end: datetime.datetime):
     with sqlite3.connect(sqlite_db_path) as con:
         cur = con.cursor()
 
         cur.execute('''INSERT  INTO findmespot_keys (fms_key, last_rqs_ts, last_waypoint_ts) VALUES (?, ?, ?)''',
-                    (str(fms_trip_id), date_start, date_start))
-        db_id = cur.execute('''SELECT fms_key_id from findmespot_keys where fms_key = ?''', (str(fms_trip_id),)).fetchall()[0][0]
-        cur.execute('''INSERT INTO trips VALUES (?, ?, ?, ?)''', (str(trip_name), date_start, date_end, int(db_id)))
+                    (str(fms_trip_id), date_start.strftime(DB_TIME_FORMAT),
+                     date_end.strftime(DB_TIME_FORMAT)))
+        db_id = \
+            cur.execute('''SELECT fms_key_id from findmespot_keys where fms_key = ?''', (str(fms_trip_id),)).fetchall()[
+                0][
+                0]
+        cur.execute('''INSERT INTO trips VALUES (?, ?, ?, ?)''', (str(trip_name), date_start.strftime(DB_TIME_FORMAT),
+                                                                  date_end.strftime(DB_TIME_FORMAT), int(db_id)))
         con.commit()

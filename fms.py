@@ -10,7 +10,7 @@ FIND_ME_SPOT_URL = r'https://api.findmespot.com/spot-main-web/consumer/rest-api/
 
 def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     # key, finish_ts, last_rqs_t = get_trip_attributes(key)
-    finish_ts = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=4)
+    finish_ts = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=10)
     # finish_ts = datetime.datetime.strptime(finish_ts, "%Y-%m-%dT%H:%M:%SZ")
     # if datetime.datetime.now(datetime.timezone.utc) > finish_ts:
     #     return
@@ -20,7 +20,7 @@ def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     url = FIND_ME_SPOT_URL.format(
         key=key,
         startDate=UTC_ts_to_fms_ts(finish_ts),
-        endDate=(finish_ts+datetime.timedelta(hours=2)).astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z"),
+        endDate=(finish_ts + datetime.timedelta(hours=6)).astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z"),
         # endDate=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S%z")
     )
     print(url)
@@ -30,15 +30,15 @@ def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     print(data_json)
     messages = data['response']['feedMessageResponse']['messages']['message']
     for mess in messages:
-        if messages[mess]['dateTime'] > start_ts:  # Ещё будет функция перевода времени.
-            update_tables(messages[mess], key)
+        if fms_ts_to_UTC_ts(mess['dateTime']) > start_ts.astimezone(datetime.timezone.utc):
+            update_tables(mess, key)
         else:
             break
 
 
 def main():
     check_base()
-    now_fms_keys_id = all_current_trips()
+    # now_fms_keys_id = all_current_trips()
     now_fms_keys_id = [['0qHqjJzFKEQun9tMae2TZN8Dp1a4Di487']]
     for id in now_fms_keys_id:
         fetch_from_findmespot(id[0])
