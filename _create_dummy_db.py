@@ -1,5 +1,5 @@
 from fms import *
-from base_functions import _create_base
+from db_functions import _create_base
 
 
 def _create_dummy_data(path=sqlite_db_path):

@@ -6,7 +6,8 @@ import geojson
 import werkzeug.exceptions
 import os
 from werkzeug.datastructures import Headers
-from base_functions import get_waypoints_by_trip, set_db_path
+from db_functions import get_waypoints_by_trip, set_db_path, create_new_trip, db_ts_to_UTC_ts
+from dateutil.parser import parse
 
 app = Flask(__name__)
 APP_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -72,7 +73,7 @@ def get_waypoints(*args, **kwargs):
 def generate_gpx(*args, **kwargs):
     if 'trip_name' not in dict(request.args):
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
-    trip_name = dict(request.args)['trip_name'][0]
+    trip_name = dict(request.args)['trip_name']
     waypoints = get_waypoints_by_trip(trip_name)
     gpx = gpxpy.gpx.GPX()
     gpx_track = gpxpy.gpx.GPXTrack()
@@ -81,15 +82,40 @@ def generate_gpx(*args, **kwargs):
     gpx_track.segments.append(gpx_segment)
     for i in range(len(waypoints)):
         id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
-        ts_time = datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ")
-        gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts_time))
-        cur_pnt = gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts_time)
+        ts = db_ts_to_UTC_ts(ts)
+        gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts))
+        cur_pnt = gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts)
         cur_pnt.description = f"Время: {ts} Заряд батареи {bs}"
         gpx_segment.points.append(cur_pnt)
     hdrs = Headers()
     hdrs.add('Content-Type', 'application/gpx+xml')
-    hdrs.add('Content-Disposition', 'attachment', filename='track.pgx')
+    hdrs.add('Content-Disposition', 'attachment', filename='track.gpx')
     return Response(gpx.to_xml(), headers=hdrs)
+
+
+@app.route('/create_track')
+def create_track(*args, **kwargs):
+    if 'trip_name' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key trip_name not found'))
+    if 'fms_key' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key fms_key not found'))
+    if 'date_s' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key date_s not found'))
+    if 'date_e' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key date_e not found'))
+    trip_name = dict(request.args)['trip_name']
+    fms_key = dict(request.args)['fms_key']
+    print(request.args)
+    date_s = parse(dict(request.args)['date_s'], fuzzy=True)
+    date_e = parse(dict(request.args)['date_e'], fuzzy=True)
+    create_new_trip(trip_name, fms_key, date_s, date_e)
+    message = {
+        'status': 200,
+        'message': 'OK'
+    }
+    response = jsonify(message)
+    response.status_code = 200
+    return response
 
 
 @app.route('/')
