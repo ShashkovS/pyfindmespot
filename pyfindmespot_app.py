@@ -6,7 +6,8 @@ import geojson
 import werkzeug.exceptions
 import os
 from werkzeug.datastructures import Headers
-from base_functions import get_waypoints_by_trip, set_db_path
+from base_functions import get_waypoints_by_trip, set_db_path, create_new_trip
+from dateutil.parser import parse
 
 app = Flask(__name__)
 APP_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -90,6 +91,31 @@ def generate_gpx(*args, **kwargs):
     hdrs.add('Content-Type', 'application/gpx+xml')
     hdrs.add('Content-Disposition', 'attachment', filename='track.pgx')
     return Response(gpx.to_xml(), headers=hdrs)
+
+
+@app.route('/create_track')
+def create_track(*args, **kwargs):
+    if 'trip_name' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key trip_name not found'))
+    if 'fms_key' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key fms_key not found'))
+    if 'date_s' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key date_s not found'))
+    if 'date_e' not in dict(request.args):
+        return bad_request_error_handler(NameError(f'Key date_e not found'))
+    trip_name = dict(request.args)['trip_name']
+    fms_key = dict(request.args)['fms_key']
+    print(request.args)
+    date_s = parse(dict(request.args)['date_s'], fuzzy=True)
+    date_e = parse(dict(request.args)['date_s'], fuzzy=True)
+    create_new_trip(trip_name, fms_key, date_s, date_e)
+    message = {
+        'status': 200,
+        'message': 'OK'
+    }
+    response = jsonify(message)
+    response.status_code = 200
+    return response
 
 
 @app.route('/')

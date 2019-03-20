@@ -1,6 +1,7 @@
-import sqlite3
-import datetime
 import os
+import sqlite3
+
+import datetime
 
 sqlite_db_path = r'db/tracks2.db'
 NOW_TIME = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -110,3 +111,14 @@ def get_waypoints_by_trip(trip_name: str):
         name, date_s, date_e, fms_id = table.fetchall()[0]
         waypoints = cur.execute('''SELECT * FROM waypoints where fms_key_id = ?''', (str(fms_id),)).fetchall()
     return waypoints
+
+
+def create_new_trip(trip_name: str, fms_trip_id: str, date_start, date_end):
+    with sqlite3.connect(sqlite_db_path) as con:
+        cur = con.cursor()
+
+        cur.execute('''INSERT  INTO findmespot_keys (fms_key, last_rqs_ts, last_waypoint_ts) VALUES (?, ?, ?)''',
+                    (str(fms_trip_id), date_start, date_start))
+        db_id = cur.execute('''SELECT fms_key_id from findmespot_keys where fms_key = ?''', (str(fms_trip_id),)).fetchall()[0][0]
+        cur.execute('''INSERT INTO trips VALUES (?, ?, ?, ?)''', (str(trip_name), date_start, date_end, int(db_id)))
+        con.commit()

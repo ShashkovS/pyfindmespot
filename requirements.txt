@@ -8,3 +8,4 @@ MarkupSafe
 Werkzeug
 requests
 pyperclip
+python-dateutil
