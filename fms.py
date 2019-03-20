@@ -2,15 +2,18 @@
 
 import requests
 import json
-from base_functions import *
+from db_functions import *
 
-ZERO_TS = datetime.datetime(2000, 1, 1, 0, 0)
+# СОГЛАШЕНИЕ: Все timestamp'ы (datetime) только в UTC (GMT +00:00, а не GMT +03:00 и т.п.)
+
 FIND_ME_SPOT_URL = r'https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/{key}/message.json?startDate={startDate}&endDate={endDate}'
 
 
 def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     # key, finish_ts, last_rqs_t = get_trip_attributes(key)
-    finish_ts = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=10)
+    # finish_ts = db_ts_to_UTC_ts(finish_ts)
+    # last_rqs_t = db_ts_to_UTC_ts(last_rqs_t)
+    finish_ts = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)
     # finish_ts = datetime.datetime.strptime(finish_ts, "%Y-%m-%dT%H:%M:%SZ")
     # if datetime.datetime.now(datetime.timezone.utc) > finish_ts:
     #     return
@@ -20,7 +23,7 @@ def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     url = FIND_ME_SPOT_URL.format(
         key=key,
         startDate=UTC_ts_to_fms_ts(finish_ts),
-        endDate=(finish_ts + datetime.timedelta(hours=6)).astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z"),
+        endDate=now_time_utc().astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z"),
         # endDate=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S%z")
     )
     print(url)
@@ -29,11 +32,9 @@ def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     data = json.loads(data_json)
     print(data_json)
     messages = data['response']['feedMessageResponse']['messages']['message']
-    for mess in messages:
-        if fms_ts_to_UTC_ts(mess['dateTime']) > start_ts.astimezone(datetime.timezone.utc):
-            update_tables(mess, key)
-        else:
-            break
+    new_messages = [mess for mess in messages if fms_ts_to_UTC_ts(mess['dateTime']) > start_ts]
+    if new_messages:
+        write_waypoints_to_db(new_messages, key)
 
 
 def main():
