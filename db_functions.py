@@ -120,10 +120,8 @@ def write_waypoints_to_db(messages: List[Dict], key: str):
 def get_waypoints_by_trip(trip_name: str):
     with sqlite3.connect(sqlite_db_path) as con:
         cur = con.cursor()
-        waypoints = cur.execute('''SELECT waypoints.* FROM waypoints 
-                                   join trips on waypoints.fms_key_id = trips.fms_key_id
-                                   where trips.name = ?''',
-                                (trip_name,)).fetchall()
+        waypoints = cur.execute('''SELECT waypoints.* FROM waypoints join trips on waypoints.fms_key_id = trips.fms_key_id where trips.name = ? ORDER BY waypoints.ts''',
+                                   (trip_name,)).fetchall()
     return waypoints
 
 
