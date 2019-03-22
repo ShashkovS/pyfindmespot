@@ -10,10 +10,14 @@ FIND_ME_SPOT_URL = r'https://api.findmespot.com/spot-main-web/consumer/rest-api/
 
 
 def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
-    # key, finish_ts, last_rqs_t = get_trip_attributes(key)
+    key, last_point_ts, last_rqs_t = get_trip_attributes(key)
+    last_point_ts = db_ts_to_UTC_ts(last_point_ts)
+    last_rqs_t = db_ts_to_UTC_ts(last_rqs_t)
+    if now_time_utc() - last_rqs_t < datetime.timedelta(minutes=5):
+        return
     # finish_ts = db_ts_to_UTC_ts(finish_ts)
     # last_rqs_t = db_ts_to_UTC_ts(last_rqs_t)
-    finish_ts = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)
+    # finish_ts = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)
     # finish_ts = datetime.datetime.strptime(finish_ts, "%Y-%m-%dT%H:%M:%SZ")
     # if datetime.datetime.now(datetime.timezone.utc) > finish_ts:
     #     return
@@ -22,7 +26,7 @@ def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     # WTH!!! startDate in -08:00 timezone and enddate in UTC!
     url = FIND_ME_SPOT_URL.format(
         key=key,
-        startDate=UTC_ts_to_fms_ts(finish_ts),
+        startDate=UTC_ts_to_fms_ts(last_point_ts),
         endDate=now_time_utc().astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z"),
         # endDate=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S%z")
     )
@@ -39,8 +43,8 @@ def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
 
 def main():
     check_base()
-    # now_fms_keys_id = all_current_trips()
-    now_fms_keys_id = [['0qHqjJzFKEQun9tMae2TZN8Dp1a4Di487']]
+    now_fms_keys_id = all_current_trips()
+    # now_fms_keys_id = [['0qHqjJzFKEQun9tMae2TZN8Dp1a4Di487']]
     for id in now_fms_keys_id:
         fetch_from_findmespot(id[0])
 

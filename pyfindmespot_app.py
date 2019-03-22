@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request, render_template, Response, send_file
 from prefix_and_wsgi_proxy_fix import ReverseProxied
-import datetime
 import gpxpy.gpx
 import geojson
 import werkzeug.exceptions

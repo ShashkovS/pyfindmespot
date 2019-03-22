@@ -77,7 +77,7 @@ def get_trip_attributes(id):
     with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
         c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id,))
-        return c.fetchall()
+        return c.fetchall()[0]
 
 
 def all_current_trips():
