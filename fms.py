@@ -29,8 +29,8 @@ def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     startDate, endDate = sorted([ startDate, endDate])  
     url = FIND_ME_SPOT_URL.format(
         key=key,
-        startDate=UTC_ts_to_fms_ts(last_point_ts),
-        endDate=now_time_utc().astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z"),
+        startDate=startDate,
+        endDate=endDate,
         # endDate=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S%z")
     )
     print(url)
