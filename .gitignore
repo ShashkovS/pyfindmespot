@@ -17,3 +17,6 @@ ENV/
 
 # PyCharm
 .idea/
+
+# database
+db/

@@ -48,11 +48,12 @@ def internal_error_handler(e=None):
 def get_waypoints(*args, **kwargs):
     if 'trip_name' not in dict(request.args):
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
-    trip_name = dict(request.args)['trip_name'][0]
+    trip_name = dict(request.args)['trip_name']
     waypoints = get_waypoints_by_trip(trip_name)
     features = []
     for i in range(len(waypoints)):
         id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
+        ts = db_ts_to_UTC_ts(ts)
         cur_point = geojson.Point((lat, long, alt))
         features.append(geojson.Feature(geometry=cur_point, properties={'BatteryState': bs,
                                                                         'Message': msg,
