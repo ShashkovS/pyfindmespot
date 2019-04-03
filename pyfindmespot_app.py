@@ -72,6 +72,7 @@ def get_waypoints(*args, **kwargs):
 
 @app.route('/get_gpx_waypoints')
 def generate_gpx(*args, **kwargs):
+    args = dict(request.args)
     if 'trip_name' not in args:
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
     trip_name = args['trip_name']
@@ -84,7 +85,8 @@ def generate_gpx(*args, **kwargs):
     for i in range(len(waypoints)):
         id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
         ts = str_ts_to_UTC_ts(ts)
-        gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts))
+        if msg:
+            gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts))
         cur_pnt = gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts)
         cur_pnt.description = f"Время: {ts} Заряд батареи {bs}"
         gpx_segment.points.append(cur_pnt)
