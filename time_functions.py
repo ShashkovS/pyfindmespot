@@ -1,30 +1,24 @@
-import datetime
+from datetime import datetime, timezone, timedelta
+UTC = timezone.utc
+ZERO_TS = datetime(2000, 1, 1, 0, 0, tzinfo=UTC)
+TS_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 
-ZERO_TS = datetime.datetime(2000, 1, 1, 0, 0).astimezone(datetime.timezone.utc)
+# Есть три формата даты:
+# В базе храним '1999-12-31T21:00:00+0000'
+# В url-запросе к findmespot.com нужно указать время в часом поясе -08:00
+# А в ответ в треке придёт время в формате UTC
 
-
-def now_time_utc():
-    return datetime.datetime.now().astimezone(datetime.timezone.utc)
-
-
-def UTC_ts_to_fms_ts(dt):
-    return dt.astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z")
-
-
-def fms_ts_to_UTC_ts(ts_utc):
-    dt = datetime.datetime.strptime(ts_utc, "%Y-%m-%dT%H:%M:%S%z")
-    return dt.astimezone(datetime.timezone.utc)
+def now_time_utc() -> datetime:
+    return datetime.now(tz=UTC)
 
 
-def db_ts_to_UTC_ts(ts_utc):
-    dt = datetime.datetime.strptime(ts_utc, "%Y-%m-%d %H:%M:%S%z")
-    # dt = datetime.datetime.fromisoformat(ts_utc)
-    return dt.astimezone(datetime.timezone.utc)
+def UTC_ts_to_FMS_URL_ts(dt) -> str:
+    return dt.astimezone(timezone(offset=timedelta(hours=-8))).strftime(TS_FORMAT)
 
 
-def UTC_ts_to_db_ts(ts_utc: datetime.datetime):
-    return ts_utc.strftime("%Y-%m-%d %H:%M:%S%z")
+def str_ts_to_UTC_ts(ts_str: str) -> datetime:
+    return datetime.strptime(ts_str, TS_FORMAT).astimezone(UTC)
 
 
-def url_ts_to_UTC_ts(dt):
-    return datetime.datetime.strptime(dt, "%d-%m-%YT%H:%M:%S%z")
+def UTC_ts_to_str_ts(ts_utc: datetime) -> str:
+    return ts_utc.strftime(TS_FORMAT)

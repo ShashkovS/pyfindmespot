@@ -3,7 +3,8 @@ import sqlite3
 from typing import List, Dict
 from time_functions import *
 
-sqlite_db_path = r'db/tracks2.db'
+APP_PATH = os.path.dirname(os.path.realpath(__file__))
+sqlite_db_path = os.path.join(APP_PATH, 'db', 'tracks3.db')
 DB_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
@@ -51,17 +52,20 @@ def _create_base():
         conn.commit()
 
 
-def get_trip_attributes(id):
+def get_trip_attributes(fms_key_id: int):
     with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
-        c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (id,))
-        return c.fetchall()[0]
+        row = c.execute("""SELECT fms_key, last_waypoint_ts, last_rqs_ts FROM findmespot_keys WHERE fms_key_id = ?""", (fms_key_id,)).fetchall()
+    key, last_point_ts, last_rqs_t = row[0]
+    last_point_ts = str_ts_to_UTC_ts(last_point_ts)
+    last_rqs_t = str_ts_to_UTC_ts(last_rqs_t)
+    return key, last_point_ts, last_rqs_t
 
 
 def all_current_trips():
     with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
-        c.execute("""SELECT fms_key_id FROM trips WHERE date_e >= ?""", (UTC_ts_to_db_ts(now_time_utc()),))
+        c.execute("""SELECT fms_key_id FROM trips WHERE date_e >= ?""", (UTC_ts_to_str_ts(now_time_utc()),))
         return c.fetchall()
 
 
@@ -72,7 +76,7 @@ def write_waypoints_to_db(messages: List[Dict], key: str):
         if not fms_key_id_rows:
             raise Exception('Findmespot key not found in findmespot_keys')
         fms_key_id = fms_key_id_rows[0][0]
-        cursor.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (UTC_ts_to_db_ts(now_time_utc()), fms_key_id))
+        cursor.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (UTC_ts_to_str_ts(now_time_utc()), fms_key_id))
         conn.commit()
 
         max_ts_seen = ZERO_TS
@@ -81,34 +85,37 @@ def write_waypoints_to_db(messages: List[Dict], key: str):
             alt = waypoint['altitude']
             lat = waypoint['latitude']
             long = waypoint['longitude']
-            ts = fms_ts_to_UTC_ts(waypoint['dateTime'])
+            ts = str_ts_to_UTC_ts(waypoint['dateTime'])
             max_ts_seen = max(ts, max_ts_seen)
             battery_state = waypoint['batteryState']
             msg = waypoint.get('messageContent', '')
             id_from_fms = waypoint['id']
             cursor.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
                               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                           (fms_key_id, id_from_fms, lat, long, alt, ts, battery_state, msg))
+                           (fms_key_id, id_from_fms, lat, long, alt, UTC_ts_to_str_ts(ts), battery_state, msg))
         conn.commit()
         cursor.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?",
-                       (UTC_ts_to_db_ts(max_ts_seen), fms_key_id))
+                       (UTC_ts_to_str_ts(max_ts_seen), fms_key_id))
         conn.commit()
 
 
 def get_waypoints_by_trip(trip_name: str):
     with sqlite3.connect(sqlite_db_path) as con:
         cur = con.cursor()
-        waypoints = cur.execute('''SELECT waypoints.* FROM waypoints join trips on waypoints.fms_key_id = trips.fms_key_id where trips.name = ? ORDER BY waypoints.ts''',
-                                   (trip_name,)).fetchall()
+        waypoints = cur.execute('''SELECT waypoints.* FROM waypoints 
+                                   join trips on waypoints.fms_key_id = trips.fms_key_id 
+                                   where trips.name = ? 
+                                   ORDER BY waypoints.ts''',
+                                (trip_name,)).fetchall()
     return waypoints
 
 
-def create_new_trip(trip_name: str, fms_trip_id: str, date_start: datetime.datetime, date_end: datetime.datetime):
+def create_new_trip(trip_name: str, fms_trip_id: str, date_start: datetime, date_end: datetime):
     with sqlite3.connect(sqlite_db_path) as con:
-        date_start = date_start.astimezone(datetime.timezone.utc)
-        date_end = date_end.astimezone(datetime.timezone.utc)
+        date_start = UTC_ts_to_str_ts(date_start)
+        date_end = UTC_ts_to_str_ts(date_end)
         cur = con.cursor()
-        cur.execute('''INSERT  INTO findmespot_keys (fms_key, last_rqs_ts, last_waypoint_ts) VALUES (?, ?, ?)''',
+        cur.execute('''INSERT INTO findmespot_keys (fms_key, last_rqs_ts, last_waypoint_ts) VALUES (?, ?, ?)''',
                     (str(fms_trip_id), date_start, date_end))
         db_id = cur.execute('''SELECT fms_key_id from findmespot_keys where fms_key = ?''',
                             (str(fms_trip_id),)).fetchall()[0][0]

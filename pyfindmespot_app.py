@@ -5,13 +5,13 @@ import geojson
 import werkzeug.exceptions
 import os
 from werkzeug.datastructures import Headers
-from db_functions import get_waypoints_by_trip, set_db_path, create_new_trip, db_ts_to_UTC_ts
+from db_functions import get_waypoints_by_trip, set_db_path, create_new_trip, str_ts_to_UTC_ts
 from dateutil.parser import parse
-from time_functions import url_ts_to_UTC_ts
+from time_functions import str_ts_to_UTC_ts
 
 app = Flask(__name__)
 APP_PATH = os.path.dirname(os.path.realpath(__file__))
-sqlite_db_path = os.path.join(APP_PATH, 'db', 'tracks2.db')
+sqlite_db_path = os.path.join(APP_PATH, 'db', 'tracks3.db')
 set_db_path(sqlite_db_path)
 
 
@@ -47,14 +47,14 @@ def internal_error_handler(e=None):
 
 @app.route('/get_waypoints')
 def get_waypoints(*args, **kwargs):
-    if 'trip_name' not in dict(request.args):
+    if 'trip_name' not in args:
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
-    trip_name = dict(request.args)['trip_name']
+    trip_name = args['trip_name']
     waypoints = get_waypoints_by_trip(trip_name)
     features = []
     for i in range(len(waypoints)):
         id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
-        ts = db_ts_to_UTC_ts(ts)
+        ts = str_ts_to_UTC_ts(ts)
         cur_point = geojson.Point((lat, long, alt))
         features.append(geojson.Feature(geometry=cur_point, properties={'BatteryState': bs,
                                                                         'Message': msg,
@@ -72,9 +72,9 @@ def get_waypoints(*args, **kwargs):
 
 @app.route('/get_gpx_waypoints')
 def generate_gpx(*args, **kwargs):
-    if 'trip_name' not in dict(request.args):
+    if 'trip_name' not in args:
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
-    trip_name = dict(request.args)['trip_name']
+    trip_name = args['trip_name']
     waypoints = get_waypoints_by_trip(trip_name)
     gpx = gpxpy.gpx.GPX()
     gpx_track = gpxpy.gpx.GPXTrack()
@@ -83,7 +83,7 @@ def generate_gpx(*args, **kwargs):
     gpx_track.segments.append(gpx_segment)
     for i in range(len(waypoints)):
         id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
-        ts = db_ts_to_UTC_ts(ts)
+        ts = str_ts_to_UTC_ts(ts)
         gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts))
         cur_pnt = gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts)
         cur_pnt.description = f"Время: {ts} Заряд батареи {bs}"
@@ -96,19 +96,15 @@ def generate_gpx(*args, **kwargs):
 
 @app.route('/create_track')
 def create_track(*args, **kwargs):
-    if 'trip_name' not in dict(request.args):
-        return bad_request_error_handler(NameError(f'Key trip_name not found'))
-    if 'fms_key' not in dict(request.args):
-        return bad_request_error_handler(NameError(f'Key fms_key not found'))
-    if 'date_s' not in dict(request.args):
-        return bad_request_error_handler(NameError(f'Key date_s not found'))
-    if 'date_e' not in dict(request.args):
-        return bad_request_error_handler(NameError(f'Key date_e not found'))
-    trip_name = dict(request.args)['trip_name']
-    fms_key = dict(request.args)['fms_key']
-    print(request.args)
-    date_s = url_ts_to_UTC_ts(dict(request.args)['date_s'])
-    date_e = url_ts_to_UTC_ts(dict(request.args)['date_e'])
+    args = dict(request.args)
+    for parm in ['trip_name', 'fms_key', 'date_s', 'date_e']:
+        if parm not in args:
+            return bad_request_error_handler(NameError(f'Key {parm} not found'))
+    trip_name = args['trip_name']
+    fms_key = args['fms_key']
+    print(args)
+    date_s = str_ts_to_UTC_ts(args['date_s'])
+    date_e = str_ts_to_UTC_ts(args['date_e'])
     create_new_trip(trip_name, fms_key, date_s, date_e)
     message = {
         'status': 200,
