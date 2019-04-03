@@ -24,9 +24,9 @@ def fetch_from_findmespot(key: str, start_ts=ZERO_TS):
     # The date/time format should be 2009-01-22T13:08:55-0800
     # startDate=                     2019-03-13T09:48:26+0000
     # WTH!!! startDate in -08:00 timezone and enddate in UTC!
-    startDate=UTC_ts_to_fms_ts(last_point_ts)
-    endDate=now_time_utc().astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z")
-    startDate, endDate = sorted([ startDate, endDate])  
+    startDate = UTC_ts_to_fms_ts(last_point_ts)
+    endDate = now_time_utc().astimezone(datetime.timezone(offset=datetime.timedelta(hours=-8))).strftime("%Y-%m-%dT%H:%M:%S%z")
+    startDate, endDate = sorted([startDate, endDate])
     url = FIND_ME_SPOT_URL.format(
         key=key,
         startDate=startDate,

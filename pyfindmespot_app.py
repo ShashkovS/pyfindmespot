@@ -7,6 +7,7 @@ import os
 from werkzeug.datastructures import Headers
 from db_functions import get_waypoints_by_trip, set_db_path, create_new_trip, db_ts_to_UTC_ts
 from dateutil.parser import parse
+from time_functions import url_ts_to_UTC_ts
 
 app = Flask(__name__)
 APP_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -106,8 +107,8 @@ def create_track(*args, **kwargs):
     trip_name = dict(request.args)['trip_name']
     fms_key = dict(request.args)['fms_key']
     print(request.args)
-    date_s = parse(dict(request.args)['date_s'], fuzzy=True)
-    date_e = parse(dict(request.args)['date_e'], fuzzy=True)
+    date_s = url_ts_to_UTC_ts(dict(request.args)['date_s'])
+    date_e = url_ts_to_UTC_ts(dict(request.args)['date_e'])
     create_new_trip(trip_name, fms_key, date_s, date_e)
     message = {
         'status': 200,
