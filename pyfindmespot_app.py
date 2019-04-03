@@ -11,7 +11,7 @@ from time_functions import str_ts_to_UTC_ts
 
 app = Flask(__name__)
 APP_PATH = os.path.dirname(os.path.realpath(__file__))
-sqlite_db_path = os.path.join(APP_PATH, 'db', 'tracks3.db')
+sqlite_db_path = os.path.join(APP_PATH, 'db', 'tracks_prod.db.db')
 set_db_path(sqlite_db_path)
 
 

@@ -19,4 +19,4 @@ ENV/
 .idea/
 
 # database
-db/tracks2.db
+db/tracks_prod.db
