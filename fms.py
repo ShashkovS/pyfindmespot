@@ -9,10 +9,10 @@ from db_functions import *
 FIND_ME_SPOT_URL = r'https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/{key}/message.json?startDate={startDate}&endDate={endDate}'
 
 
-def fetch_from_findmespot(key: int, start_ts=ZERO_TS):
+def fetch_from_findmespot(key: int):
     key, last_point_ts, last_rqs_t = get_trip_attributes(key)
-    # if now_time_utc() - last_rqs_t < timedelta(minutes=5):
-    #     return
+    if now_time_utc() - last_rqs_t < timedelta(minutes=5):
+        return
     url = FIND_ME_SPOT_URL.format(
         key=key,
         startDate=UTC_ts_to_FMS_URL_ts(last_point_ts + timedelta(seconds=1)),
@@ -23,7 +23,11 @@ def fetch_from_findmespot(key: int, start_ts=ZERO_TS):
     data_json = rq.content.decode('utf-8')
     data = json.loads(data_json)
     print(data_json)
-    messages = data['response']['feedMessageResponse']['messages']['message']
+    if 'errors' in data['response']:
+        print(data['response'])
+        messages = []
+    else:
+        messages = data['response']['feedMessageResponse']['messages']['message']
     write_waypoints_to_db(messages, key)
 
 

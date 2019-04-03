@@ -78,24 +78,34 @@ def write_waypoints_to_db(messages: List[Dict], key: str):
         fms_key_id = fms_key_id_rows[0][0]
         cursor.execute("UPDATE findmespot_keys SET last_rqs_ts = ? where fms_key_id = ?", (UTC_ts_to_str_ts(now_time_utc()), fms_key_id))
         conn.commit()
-
-        max_ts_seen = ZERO_TS
-
-        for waypoint in messages:
-            alt = waypoint['altitude']
-            lat = waypoint['latitude']
-            long = waypoint['longitude']
-            ts = str_ts_to_UTC_ts(waypoint['dateTime'])
-            max_ts_seen = max(ts, max_ts_seen)
-            battery_state = waypoint['batteryState']
-            msg = waypoint.get('messageContent', '')
-            id_from_fms = waypoint['id']
-            cursor.execute(f"""INSERT into waypoints (fms_key_id, id_from_fms, lat, long, alt, ts, batteryState, msg)
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                           (fms_key_id, id_from_fms, lat, long, alt, UTC_ts_to_str_ts(ts), battery_state, msg))
+        if not messages:
+            return
+        # Порядок ключей важен! Он должен соответствовать столбцам базы
+        waypoints = [
+            {
+                'fms_key_id': fms_key_id,
+                'id_from_fms': waypoint['id'],
+                'lat': waypoint['latitude'],
+                'long': waypoint['longitude'],
+                'alt': waypoint['altitude'],
+                'ts': str_ts_to_UTC_ts(waypoint['dateTime']),
+                'batteryState': waypoint['batteryState'],
+                'msg': waypoint.get('messageContent', ''),
+            }
+            for waypoint in messages
+        ]
+        waypoints.sort(key=lambda waypoint: waypoint['ts'])
+        fields = ', '.join(waypoints[0].keys())
+        placemarks = ', '.join('?'*len(waypoints[0]))
+        for waypoint in waypoints:
+            waypoint['ts'] = UTC_ts_to_str_ts(waypoint['ts'])
+            cursor.execute(f"""INSERT into waypoints ({fields})
+                              VALUES ({placemarks})""",
+                           tuple(waypoint.values()))
         conn.commit()
-        cursor.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?",
-                       (UTC_ts_to_str_ts(max_ts_seen), fms_key_id))
+        if waypoints:
+            cursor.execute("UPDATE findmespot_keys SET last_waypoint_ts = ? where fms_key_id = ?",
+                           (waypoints[-1]['ts'], fms_key_id))
         conn.commit()
 
 
