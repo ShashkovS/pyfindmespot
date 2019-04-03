@@ -4,7 +4,7 @@ from typing import List, Dict
 from time_functions import *
 
 APP_PATH = os.path.dirname(os.path.realpath(__file__))
-sqlite_db_path = os.path.join(APP_PATH, 'db', 'tracks_prod.db.db')
+sqlite_db_path = os.path.join(APP_PATH, 'db', 'tracks_prod.db')
 DB_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
