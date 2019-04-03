@@ -86,7 +86,7 @@ def generate_gpx(*args, **kwargs):
         id, fms_key_id, id_fms, lat, long, alt, ts, bs, msg = waypoints[i]
         ts = str_ts_to_UTC_ts(ts)
         if msg:
-            gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts))
+            gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts, name=msg))
         cur_pnt = gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts)
         cur_pnt.description = f"Время: {ts} Заряд батареи {bs}"
         gpx_segment.points.append(cur_pnt)
