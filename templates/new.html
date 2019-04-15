@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <style>
+        /* Базовый стиль формы */
+        form {
+            margin: 0 auto;
+            max-width: 95%;
+            max-height: 95%;
+            padding: 30px 30px 6px 30px;
+            border: 1px solid rgba(0, 0, 0, .2);
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            -moz-background-clip: padding;
+            -webkit-background-clip: padding-box;
+            background-clip: padding-box;
+            background: rgba(140, 23, 145, 0.35);
+            -moz-box-shadow: 0 0 13px 3px rgba(140, 23, 145, 0.35);
+            -webkit-box-shadow: 0 0 13px 3px rgba(140, 23, 145, 0.35);
+            box-shadow: 0 0 13px 3px rgba(140, 23, 145, 0.35);
+            overflow: hidden;
+        }
+        /* Поле сообщения */
+        /* Поля ввода */
+        input {
+            width: 60%;
+            height: 48px;
+            border: 1px solid rgba(255, 255, 255, .4);
+        display:flex;
+
+        /* Стили для кнопки отправить */
+
+    </style>
+
+    <title>Мапа</title>
+
+</head>
+
+<body>
+<form method="post">
+    <div class="wid">
+        <div class="dates">
+            <div>
+                <label for="from">От</label>
+                <input type="date" name="from" id="from" required/>
+            </div>
+            <div>
+                <label for="to">До</label>
+                <input type="date" name="to" id="to" required/>
+            </div>
+        </div>
+    </div>
+    <label for="trip_name">Название этой поездки</label>
+    <input type="text" name="trip_name" id="trip_name" placeholder="Например: tunguda_2018" required/>
+
+    <label for="fms_key">Ключ трека на findmespot</label>
+    <input type="text" name="fms_key" id="fms_key" placeholder="Вид ключа: 0WU08vc0m1e46nrX9IdWCZymMV0p69SN1" required/>
+    <input name="submit" class="btn" type="submit" value="Отправить"/>
+</form>
+
+</body>
+
+</html>
