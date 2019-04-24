@@ -77,7 +77,7 @@ def generate_gpx(*args, **kwargs):
     args = dict(request.args)
     if 'trip_name' not in args and 't' not in args:
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
-    trip_name = args['trip_name'] or args['t']
+    trip_name = args.get('trip_name', None) or args['t']
     waypoints = get_waypoints_by_trip(trip_name)
     gpx = gpxpy.gpx.GPX()
     gpx_track = gpxpy.gpx.GPXTrack()
