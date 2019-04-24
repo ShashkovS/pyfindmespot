@@ -71,12 +71,13 @@ def get_waypoints(*args, **kwargs):
     return response
 
 
+@app.route('/gw')
 @app.route('/get_gpx_waypoints')
 def generate_gpx(*args, **kwargs):
     args = dict(request.args)
-    if 'trip_name' not in args:
+    if 'trip_name' not in args and 't' not in args:
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
-    trip_name = args['trip_name']
+    trip_name = args['trip_name'] or args['t']
     waypoints = get_waypoints_by_trip(trip_name)
     gpx = gpxpy.gpx.GPX()
     gpx_track = gpxpy.gpx.GPXTrack()
