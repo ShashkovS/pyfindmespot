@@ -28,6 +28,9 @@ def fetch_from_findmespot(key: int):
         messages = []
     else:
         messages = data['response']['feedMessageResponse']['messages']['message']
+        if type(messages) == dict:
+            messages = [messages]
+
     write_waypoints_to_db(messages, key)
 
 

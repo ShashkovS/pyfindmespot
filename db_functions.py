@@ -65,7 +65,7 @@ def get_trip_attributes(fms_key_id: int):
 def all_current_trips():
     with sqlite3.connect(sqlite_db_path) as conn:
         c = conn.cursor()
-        c.execute("""SELECT fms_key_id FROM trips WHERE date_e >= ?""", (UTC_ts_to_str_ts(now_time_utc()),))
+        c.execute("""SELECT distinct fms_key_id FROM trips WHERE date_e >= ?""", (UTC_ts_to_str_ts(now_time_utc()),))
         return c.fetchall()
 
 
@@ -115,6 +115,7 @@ def get_waypoints_by_trip(trip_name: str):
         waypoints = cur.execute('''SELECT waypoints.* FROM waypoints 
                                    join trips on waypoints.fms_key_id = trips.fms_key_id 
                                    where trips.name = ? 
+                                   and waypoints.ts between trips.date_s and trips.date_e
                                    ORDER BY waypoints.ts''',
                                 (trip_name,)).fetchall()
     return waypoints

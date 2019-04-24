@@ -47,6 +47,7 @@ def internal_error_handler(e=None):
 
 @app.route('/get_waypoints')
 def get_waypoints(*args, **kwargs):
+    args = dict(request.args)
     if 'trip_name' not in args:
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
     trip_name = args['trip_name']
