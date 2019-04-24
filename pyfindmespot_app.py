@@ -76,7 +76,7 @@ def generate_iframe_html(*args, **kwargs):
     args = dict(request.args)
     if 'trip_name' not in args and 't' not in args:
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
-    trip_name = (args.get('trip_name', None) or args['t'])[0]
+    trip_name = ''.join((args.get('trip_name', None) or args['t']))
     urlbase64 = urlsafe_b64encode(f'[{{"n":"{trip_name}","c":3,"m":true,"u":"https://proj179.ru/pyfindmespot/gw?t={trip_name}"}}]'.encode('utf-8'))\
         .decode('utf-8')
     return render_template('nakarte.html', urlbase64=urlbase64)
