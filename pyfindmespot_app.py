@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, render_template, Response, send_file
 from prefix_and_wsgi_proxy_fix import ReverseProxied
+from base64 import urlsafe_b64encode
 import gpxpy.gpx
 import geojson
 import werkzeug.exceptions
@@ -69,6 +70,16 @@ def get_waypoints(*args, **kwargs):
     response = jsonify(message)
     response.status_code = 200
     return response
+
+@app.route('/u')
+def generate_iframe_html(*args, **kwargs):
+    args = dict(request.args)
+    if 'trip_name' not in args and 't' not in args:
+        return bad_request_error_handler(NameError(f'Key trip_name not found'))
+    trip_name = (args.get('trip_name', None) or args['t'])[0]
+    urlbase64 = urlsafe_b64encode(f'[{{"n":"{trip_name}","c":3,"m":true,"u":"https://proj179.ru/pyfindmespot/gw?t={trip_name}"}}]'.encode('utf-8'))\
+        .decode('utf-8')
+    return render_template('nakarte.html', urlbase64=urlbase64)
 
 
 @app.route('/gw')
