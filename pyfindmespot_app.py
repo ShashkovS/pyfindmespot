@@ -7,8 +7,8 @@ import werkzeug.exceptions
 import os
 from werkzeug.datastructures import Headers
 from db_functions import get_waypoints_by_trip, set_db_path, create_new_trip, str_ts_to_UTC_ts
-from dateutil.parser import parse
 from time_functions import str_ts_to_UTC_ts
+from datetime import timedelta, timezone
 
 app = Flask(__name__)
 APP_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -77,8 +77,8 @@ def generate_iframe_html(*args, **kwargs):
     if 'trip_name' not in args and 't' not in args:
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
     trip_name = ''.join((args.get('trip_name', None) or args['t']))
-    urlbase64 = urlsafe_b64encode(f'[{{"n":"{trip_name}","c":3,"m":true,"u":"https://proj179.ru/pyfindmespot/gw?t={trip_name}"}}]'.encode('utf-8'))\
-        .decode('utf-8')
+    urlbase64 = f'[{{"n":"{trip_name}","c":3,"m":true,"u":"https://proj179.ru/pyfindmespot/gw?t={trip_name}"}}]'
+    urlbase64 = urlsafe_b64encode(urlbase64.encode('utf-8')).decode('utf-8')
     return render_template('nakarte.html', urlbase64=urlbase64)
 
 
@@ -100,6 +100,10 @@ def generate_gpx(*args, **kwargs):
         ts = str_ts_to_UTC_ts(ts)
         if msg:
             gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts, name=msg))
+        # Добавляем точку с временем последнего сообщения
+        if i == len(waypoints) - 1:
+            ts_msg = ts.astimezone(timezone(offset=timedelta(hours=+3))).strftime("%Y-%m-%d %H:%M:%S")
+            gpx.waypoints.append(gpxpy.gpx.GPXWaypoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts, name=ts_msg))
         cur_pnt = gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=long, elevation=alt, comment=msg, time=ts)
         cur_pnt.description = f"Время: {ts} Заряд батареи {bs}"
         gpx_segment.points.append(cur_pnt)
