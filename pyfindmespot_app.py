@@ -6,7 +6,7 @@ import geojson
 import werkzeug.exceptions
 import os
 from werkzeug.datastructures import Headers
-from db_functions import get_waypoints_by_trip, set_db_path, create_new_trip, str_ts_to_UTC_ts
+from db_functions import get_waypoints_by_trip, set_db_path, create_new_trip, get_nakarte_url_by_trip
 from time_functions import str_ts_to_UTC_ts
 from datetime import timedelta, timezone
 
@@ -77,9 +77,12 @@ def generate_iframe_html(*args, **kwargs):
     if 'trip_name' not in args and 't' not in args:
         return bad_request_error_handler(NameError(f'Key trip_name not found'))
     trip_name = ''.join((args.get('trip_name', None) or args['t']))
+    nakarte_url = get_nakarte_url_by_trip(trip_name) or 'https://nakarte.me/#l=Otm'
+    print('nakarte_url: ', nakarte_url)
     urlbase64 = f'[{{"n":"{trip_name}","c":3,"m":true,"u":"https://proj179.ru/pyfindmespot/gw?t={trip_name}"}}]'
     urlbase64 = urlsafe_b64encode(urlbase64.encode('utf-8')).decode('utf-8')
-    return render_template('nakarte.html', urlbase64=urlbase64)
+    nakarte_url += f'&nktj={urlbase64}'
+    return render_template('nakarte.html', nakarte_url=nakarte_url)
 
 
 @app.route('/gw')

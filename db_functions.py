@@ -121,6 +121,20 @@ def get_waypoints_by_trip(trip_name: str):
     return waypoints
 
 
+def get_nakarte_url_by_trip(trip_name: str) -> str:
+    with sqlite3.connect(sqlite_db_path) as con:
+        cur = con.cursor()
+        nakarte_url = cur.execute('''SELECT nakarte_url FROM trips 
+                                   where trips.name = ? 
+                                   ''',
+                                (trip_name,)).fetchone()
+        print('db nakarte_url', nakarte_url)
+    if nakarte_url and nakarte_url[0]:
+        return nakarte_url[0]
+    else:
+        return ''
+
+
 def create_new_trip(trip_name: str, fms_trip_id: str, date_start: datetime, date_end: datetime):
     with sqlite3.connect(sqlite_db_path) as con:
         date_start = UTC_ts_to_str_ts(date_start)
