@@ -374,5 +374,5 @@ echo
 
 echo 'Тестируем: дёргаем приложение через вебсервис'
 echo
-curl -sS http://proj179.ru/pyfindmespot/test_app_is_working_kQK74RxmgPPm69 | head -n 5
+curl -sS http://pyfindmespot.proj179.ru/test_app_is_working_kQK74RxmgPPm69 | head -n 5
 echo

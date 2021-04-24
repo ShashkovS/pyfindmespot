@@ -24,7 +24,7 @@
                 }
                 layer.bindPopup(popupContent);
             }
-            fetch("https://proj179.ru.ru/pyfindmespot/get_waypoints?trip_name=" + getJsonFromUrl().trip)
+            fetch("https://pyfindmespot.proj179.ru/get_waypoints?trip_name=" + getJsonFromUrl().trip)
                 .then((response) => {
                     return response.json();
                 })

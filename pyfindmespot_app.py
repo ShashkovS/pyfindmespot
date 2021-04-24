@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, render_template, Response, send_file
-from prefix_and_wsgi_proxy_fix import ReverseProxied
+# from prefix_and_wsgi_proxy_fix import ReverseProxied
 from base64 import urlsafe_b64encode
 import gpxpy.gpx
 import geojson
@@ -79,7 +79,7 @@ def generate_iframe_html(*args, **kwargs):
     trip_name = ''.join((args.get('trip_name', None) or args['t']))
     nakarte_url = get_nakarte_url_by_trip(trip_name) or 'https://nakarte.me/#l=Otm'
     print('nakarte_url: ', nakarte_url)
-    urlbase64 = f'[{{"n":"{trip_name}","c":3,"m":true,"u":"https://proj179.ru/pyfindmespot/gw?t={trip_name}"}}]'
+    urlbase64 = f'[{{"n":"{trip_name}","c":3,"m":true,"u":"https://pyfindmespot.proj179.ru/gw?t={trip_name}"}}]'
     urlbase64 = urlsafe_b64encode(urlbase64.encode('utf-8')).decode('utf-8')
     nakarte_url += f'&nktj={urlbase64}'
     return render_template('nakarte.html', nakarte_url=nakarte_url)
@@ -143,6 +143,6 @@ def just_index():
     return render_template('index.html')
 
 
-app.wsgi_app = ReverseProxied(app.wsgi_app)
+# app.wsgi_app = ReverseProxied(app.wsgi_app)
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
